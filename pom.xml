@@ -23,7 +23,8 @@
  
          
         <module>int-bsale-woowup</module>
-		<module>conf-bsale-woowup</module>
+		<module>conf-bsale-woowup</module> 
+<module>checkMail</module>
  
 
         

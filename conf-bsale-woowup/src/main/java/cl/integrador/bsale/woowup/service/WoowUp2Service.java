@@ -1,11 +1,7 @@
 package cl.integrador.bsale.woowup.service;
 
-import cl.integrador.bsale.woowup.model.pojo.ClienteWoowup;
-import cl.integrador.bsale.woowup.model.pojo.VentaWoowup;
-import cl.integrador.bsale.woowup.model.pojo.WoowupResponse;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
