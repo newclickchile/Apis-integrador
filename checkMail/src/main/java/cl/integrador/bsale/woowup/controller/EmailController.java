@@ -46,6 +46,7 @@ public class EmailController {
         try {
             String responseBody =  executeCommand("/opt/apache-tomcat-11.0.2/work/validMail.sh " + email);
             finLog();
+            log.debug("[ VAR ] Result : {} - {}", email, responseBody);
             return ResponseEntity.status(HttpStatus.OK).body(responseBody);
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", email);

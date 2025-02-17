@@ -2,6 +2,7 @@ package cl.integrador.bsale.woowup.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 public class Bsale2Service {
 
-    private static final String CALL_URL = "https://api.bsale.io/v1";
+    @Value("${url.bsale}")
+    private String CALL_URL;
+
     private final WebClient webClient;
 
     public Bsale2Service() {

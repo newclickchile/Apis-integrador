@@ -7,6 +7,7 @@ import cl.integrador.bsale.woowup.util.WooeUpHelper;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,7 +24,9 @@ import java.time.Duration;
 @Slf4j
 public class WoowUp2Service {
 
-    private static final String CALL_URL = "https://api.woowup.com/apiv3";
+    @Value("${url.woowup}")
+    private String CALL_URL;
+
     private static final Gson GSON = new Gson();
 
     private final WebClient webClient;

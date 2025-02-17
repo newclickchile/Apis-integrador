@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
@@ -45,19 +46,13 @@ public class AsyncService {
     private EmailService emailService;
 
     @Autowired
-    private BsaleService bsaleService;
-
-    @Autowired
     private Bsale2Service bsale2Service;
-
-    @Autowired
-    private WoowUpService woowUpService;
 
     @Autowired
     private WoowUp2Service woowUp2Service;
 
-
-
+    @Value("${check.mail}")
+    private String checkAllIncomingMail;
 
     @Async("asyncTaskExecutor")
     public void procesoAsyncDelEvento(Senal senal, Cliente clienteBD, String idCliente, String accessKey) {
@@ -89,9 +84,16 @@ public class AsyncService {
                             cerrarUnDataLog(idDataLog, "NOK", "Se ignora informaciòn. Falta el nodo 'Client'",
                                     "");
                         } else {
-                            log.error("{} }Error en el proceso de Crear/Actualizar cliente", idDataLog);
-                            cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
-                                    StringEscapeUtils.unescapeJava(gson.toJson(clienteBD)));
+
+                            if (res == HttpStatus.BAD_REQUEST.value()) {
+                                log.warn("{} Se ignora informaciòn. Correo NO es valido" , idDataLog);
+                                cerrarUnDataLog(idDataLog, "NOK", "Se ignora informaciòn. Correo NO es valido",
+                                        "");
+                            } else {
+                                log.error("{} }Error en el proceso de Crear/Actualizar cliente", idDataLog);
+                                cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
+                                        StringEscapeUtils.unescapeJava(gson.toJson(clienteBD)));
+                            }
                         }
                     }
                 }
@@ -143,32 +145,61 @@ public class AsyncService {
     }
 
     private int procesoCreacionActualizacionDecliente(String jsonBsale, Cliente u) {
-        log.debug("[ PROCESS ] procesoCreacionActualizacionDecliente: {}", u.getIdCliente());
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
-        ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(bsaleResponse, u);
-        if(null != cw ) {
-//            log.debug("[ VAR ] ClienteWoowup: {}", new Gson().toJson(cw));
-            HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
-            if ( codeResponse == HttpStatus.OK) {
-                log.debug("[ VAR ] Cliente existe ? {}", true);
-                if( woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())){
-                    return HttpStatus.OK.value();
-                }
-            }else {
-                if (codeResponse == HttpStatus.NOT_FOUND) {
-                    log.debug("[ VAR ] Cliente existe ? {}", false);
-                    if( woowUp2Service.creaCliente(cw, u.getKeyWoowup())){
+        boolean emailValido = isEmailValidoDelCliente( bsaleResponse.getClient().getEmail(), u);
+        if(!emailValido){
+            log.warn("[ ATENCION ] el email {} no es valido segun servicio externo checkMail"
+                    , bsaleResponse.getClient().getEmail() );
+            return HttpStatus.BAD_REQUEST.value();
+        }else {
+            log.debug("[ PROCESS ] procesoCreacionActualizacionDecliente: {}", u.getIdCliente());
+            ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(bsaleResponse, u);
+            if (null != cw) {
+                //            log.debug("[ VAR ] ClienteWoowup: {}", new Gson().toJson(cw));
+                HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
+                if (codeResponse == HttpStatus.OK) {
+                    log.debug("[ VAR ] Cliente existe ? {}", true);
+                    if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
                         return HttpStatus.OK.value();
                     }
+                } else {
+                    if (codeResponse == HttpStatus.NOT_FOUND) {
+                        log.debug("[ VAR ] Cliente existe ? {}", false);
+                        if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
+                            return HttpStatus.OK.value();
+                        }
+                    }
                 }
+            } else {
+                return HttpStatus.FORBIDDEN.value();
             }
-        } else {
-            return HttpStatus.FORBIDDEN.value();
         }
-
         return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
+
+    private boolean isEmailValidoDelCliente(String email, Cliente u) {
+        if( !checkAllIncomingMail.equalsIgnoreCase("1")){ return true; }
+        if( !u.isEmailValidate()){ return true; }
+
+        String resValidacionMail = emailService.getCheckEmailInfo(u.getIdCliente(), u.getAccessKey(), email);
+        if(null == resValidacionMail){
+            log.debug("[ ERROR ] no se pudo validar el email {} ", email);
+            return false;
+        }
+        JsonObject jsonObject = JsonParser.parseString(resValidacionMail).getAsJsonObject();
+        String result = jsonObject.get("result").getAsString();
+        log.debug("[ VAR ] checkMail resultado para {} es : {} ", email, result);
+        if(result.equalsIgnoreCase(String.valueOf(HttpStatus.OK.value()))){
+            log.debug("[ OK ] El email {} es vàlido ", email);
+            return true;
+        }else{
+            log.debug("[ NOK ] El email {} NO es vàlido ", email);
+            return false;
+        }
+
+    }
+
     private boolean esTipoPermitidoDeDocto(String jsonBsale ) {
         log.debug("[ PROCESS ] esTipoPermitidoDeDocto");
         Gson gson = new Gson();

@@ -5,9 +5,7 @@ import cl.integrador.bsale.woowup.model.pojo.Senal;
 import cl.integrador.bsale.woowup.repository.UserDataRepository;
 import cl.integrador.bsale.woowup.repository.UserSucursalDataRepository;
 import cl.integrador.bsale.woowup.service.AsyncService;
-import cl.integrador.bsale.woowup.service.BsaleService;
 import cl.integrador.bsale.woowup.service.EmailService;
-import cl.integrador.bsale.woowup.service.WoowUpService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,19 +31,6 @@ public class IntegrationController {
     @Autowired
     private AsyncService asyncService;
 
-    private final EmailService emailService;
-
-    private final BsaleService bsaleService;
-
-    private final WoowUpService woowUpService;
-
-    public IntegrationController(EmailService emailService, BsaleService bsaleService, WoowUpService woowUpService) {
-        this.emailService = emailService;
-        this.bsaleService = bsaleService;
-        this.woowUpService = woowUpService;
-    }
-
-    @PostMapping("/")
     public ResponseEntity<Void> webhook(@RequestBody Senal senal,
                                         @RequestHeader("Cliente") String idCliente,
                                         @RequestHeader("Access_key") String accessKey) throws SQLException {

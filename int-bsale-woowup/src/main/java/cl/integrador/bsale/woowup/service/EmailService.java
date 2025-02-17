@@ -1,36 +1,49 @@
 package cl.integrador.bsale.woowup.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Duration;
 @Service
 @Slf4j
 public class EmailService {
 
-    private static final String VALIDATION_URL = "https://api.emailvalidator.com/check";
-    private final RestTemplate restTemplate;
+    @Value("${url.check.mail}")
+    private String CALL_URL;
 
-    public EmailService(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofSeconds(5))
+    private final WebClient webClient;
+
+    public EmailService() {
+        this.webClient = WebClient.builder()
+                .baseUrl(CALL_URL)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
-    @Async("asyncTaskExecutor")
-    public void validateEmailAsync(String email) {
+    public String getCheckEmailInfo(String cliente, String token, String correo) {
         try {
-            String response = restTemplate.getForObject(
-                    VALIDATION_URL + "?email={email}",
-                    String.class,
-                    email
-            );
-            log.info("Validation successful for: {}. Response: {}", email, response);
-        } catch (Exception e) {
-            log.error("Error validating email: {}", email, e);
+            log.info("[ GET INFO FROM BSALE ] [ Call for: {} - {} ]", cliente, correo);
+            return webClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/check")
+                            .queryParam("email", correo)
+                            .build())
+                    .header("access_token", token)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .doOnSuccess(response -> log.info("Call successful for: {} ", correo))
+                    .block();
+        } catch (WebClientResponseException e) {
+            log.error("Error for: {}. Status code: {}. Response body: {}", correo, e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (WebClientException e) {
+            log.error("Error for {}: {}", correo, e.getMessage());
         }
+        return null;
     }
+
 }
