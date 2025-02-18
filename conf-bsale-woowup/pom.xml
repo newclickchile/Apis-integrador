@@ -26,6 +26,7 @@
         <springsecurity.version>4.1.1.RELEASE</springsecurity.version>
         <springsecurityoauth2.version>2.0.10.RELEASE</springsecurityoauth2.version>
         <org.springframework.version>4.3.6.RELEASE</org.springframework.version>
+
     </properties>
 
     <dependencies>
@@ -62,6 +63,8 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
         </dependency>
+
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

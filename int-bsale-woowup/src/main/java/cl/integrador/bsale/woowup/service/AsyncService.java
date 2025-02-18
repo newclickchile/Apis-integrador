@@ -66,7 +66,6 @@ public class AsyncService {
         if (null == s) {
             log.debug("{}[ VAR ] Llamando servicio Bsale : {}", idDataLog , senal.getResource().split("/")[2]);
             String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale());
-//            log.debug("{}[ *************** : {}", idDataLog ,jsonBsale);
             if (null != jsonBsale) {
                 if(!esTipoPermitidoDeDocto(jsonBsale)){
                     BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);

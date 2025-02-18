@@ -1,7 +1,11 @@
 package cl.integrador.bsale.woowup.controller;
 
 import cl.integrador.bsale.woowup.model.entity.Cliente;
+import cl.integrador.bsale.woowup.model.entity.Mail;
+import cl.integrador.bsale.woowup.repository.MailDataRepository;
 import cl.integrador.bsale.woowup.repository.UserDataRepository;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 @RestController
@@ -22,6 +28,8 @@ public class EmailController {
 
     @Autowired
     UserDataRepository userDataRepository;
+    @Autowired
+    MailDataRepository mailDataRepository;
 
 
     @GetMapping("/check")
@@ -44,9 +52,20 @@ public class EmailController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         try {
+            InetAddress ip = InetAddress.getLocalHost();
             String responseBody =  executeCommand("/opt/apache-tomcat-11.0.2/work/validMail.sh " + email);
+            JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
+            String result = jsonObject.get("result").getAsString();
+            log.debug("[ VAR ] Result checkMail : {} - {}", email, responseBody);
+            Mail m = new Mail();
+            m.setIdCliente(idCliente);
+            m.setResultado(result);
+            m.setFechaIngreso(new Date());
+            m.setServer(ip.getHostAddress());
+            m.setMail(email);
+            m.setDataSalida(responseBody);
+            mailDataRepository.save(m);
             finLog();
-            log.debug("[ VAR ] Result : {} - {}", email, responseBody);
             return ResponseEntity.status(HttpStatus.OK).body(responseBody);
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", email);
