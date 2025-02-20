@@ -144,7 +144,8 @@ public class AsyncService {
     private int procesoCreacionActualizacionDecliente(String jsonBsale, Cliente u) {
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
-        boolean emailValido = isEmailValidoDelCliente( bsaleResponse.getClient().getEmail(), u);
+        boolean emailValido = isEmailValidoDelCliente(
+                null == bsaleResponse.getClient() ? "": bsaleResponse.getClient().getEmail(), u);
         if(!emailValido){
             log.warn("[ ATENCION ] el email {} no es valido segun servicio externo checkMail"
                     , bsaleResponse.getClient().getEmail() );
@@ -173,9 +174,14 @@ public class AsyncService {
     }
 
     private boolean isEmailValidoDelCliente(String email, Cliente u) {
+        if( null == email || email.trim().length() == 0){
+            log.debug("[ ATENCION ] No viene el dato 'correo'");
+            return true;
+        }
         if( checkAllIncomingMail.equalsIgnoreCase("0")){
             log.debug("[ ATENCION ] Esta configurado NO validar ningun correo y menos el {} ", email);
-            return true; }
+            return true;
+        }
         if( !u.isEmailValidate()){
             log.debug("[ ATENCION ] El cliente {} tiene configurado no validar correos como {} ", u.getIdCliente(), email);
             return true;
