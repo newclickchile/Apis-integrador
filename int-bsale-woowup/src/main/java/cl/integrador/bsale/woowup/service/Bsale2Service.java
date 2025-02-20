@@ -21,7 +21,6 @@ public class Bsale2Service {
 
     public Bsale2Service() {
         this.webClient = WebClient.builder()
-                .baseUrl(CALL_URL)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
@@ -31,11 +30,9 @@ public class Bsale2Service {
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", jsonName);
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", token);
             String url = CALL_URL + "/documents/" + jsonName + "?expand=details,client,document_type,office,attributes,payments,sellers";
-            log.info("[ VAR ] [ url: {} ]", url);
+            log.info("[ VAR ] [ GET url: {} ]", url);
             return webClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/documents/{jsonName}")
-                            .queryParam("expand", "details,client,document_type,office,attributes,payments,sellers")
-                            .build(jsonName))
+                    .uri(url)
                     .header("access_token", token)
                     .retrieve()
                     .bodyToMono(String.class)
@@ -53,7 +50,7 @@ public class Bsale2Service {
             log.info("[ GET PRODUCT FROM BSALE ] [ Call for: {} ", brand);
             log.info("[ GET PRODUCT FROM BSALE ] [ Call for: {} ", token);
             String url = brand + "?expand=costs,product,product_type";
-            log.info("[ VAR ] [ url : {} ", url);
+            log.info("[ VAR ] [ GET url : {} ", url);
             return  webClient.get()
                     .uri(url)
                     .header("access_token", token)

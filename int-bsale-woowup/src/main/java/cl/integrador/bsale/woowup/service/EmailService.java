@@ -21,7 +21,6 @@ public class EmailService {
 
     public EmailService() {
         this.webClient = WebClient.builder()
-                .baseUrl(CALL_URL)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
@@ -29,11 +28,14 @@ public class EmailService {
     public String getCheckEmailInfo(String cliente, String token, String correo) {
         try {
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} - {} ]", cliente, correo);
+            String url = CALL_URL + "/check?email="+correo;
+            log.info("[ VAR ] [ GET url: {} ]", url);
+
             return webClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/check")
-                            .queryParam("email", correo)
-                            .build())
-                    .header("access_token", token)
+                    .uri(url)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .header("Cliente", cliente)
+                    .header("Access_key", token)
                     .retrieve()
                     .bodyToMono(String.class)
                     .doOnSuccess(response -> log.info("Call successful for: {} ", correo))

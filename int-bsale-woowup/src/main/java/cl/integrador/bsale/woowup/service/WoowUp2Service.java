@@ -33,19 +33,17 @@ public class WoowUp2Service {
 
     public WoowUp2Service() {
         this.webClient = WebClient.builder()
-                .baseUrl(CALL_URL)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
     public HttpStatusCode existeCliente(ClienteWoowup cw, String token) {
         log.info("[ GET CLIENT FROM WoowUp ] [ Call for: {} ]", cw.getDocument());
-
+        String url = CALL_URL + "/multiusers/find?document=" + cw.getDocument();
+        log.info("[ VAR ] [ GET url: {} ]", url);
         try {
             return webClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/multiusers/find")
-                            .queryParam("document", cw.getDocument())
-                            .build())
+                    .uri(url)
                     .header(HttpHeaders.AUTHORIZATION, "Basic " + token)
                     .header(HttpHeaders.ACCEPT, "application/json")
                     .retrieve()
@@ -70,9 +68,10 @@ public class WoowUp2Service {
             log.info("[ UPDATE Client WoowUp ] [ Call for: {} ]", token);
             String jsonPut = WooeUpHelper.getJsonDatosCliente(cw);
             log.info("[ UPDATE Client WoowUp ] [ JSON: {} ]", jsonPut);
-
+            String url = CALL_URL + "/multiusers";
+            log.info("[ VAR ] [ PUT url: {} ]", url);
             webClient.put()
-                    .uri("/multiusers")
+                    .uri(url)
                     .header(HttpHeaders.AUTHORIZATION, "Basic " + token)
                     .bodyValue(jsonPut)
                     .retrieve()
@@ -98,9 +97,10 @@ public class WoowUp2Service {
             log.info("[ CREATE Client WoowUp ] [ Call for: {} ]", token);
             String jsonPut = WooeUpHelper.getJsonDatosCliente(cw);
             log.info("[ CREATE Client WoowUp ] [ JSON: {} ]", jsonPut);
-
+            String url = CALL_URL + "/users" ;
+            log.info("[ VAR ] [ POST url: {} ]", url);
             webClient.post()
-                .uri("/users")
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Basic " + token)
                 .bodyValue(jsonPut)
                 .retrieve()
@@ -127,9 +127,10 @@ public class WoowUp2Service {
             log.info("[ CREATE Sale WoowUp ] [ Call for: {} ]", v.getDocument());
             String jsonBody = StringEscapeUtils.unescapeJava(GSON.toJson(v));
             log.info("[ JSON to send: {} ]", jsonBody);
-
+            String url = CALL_URL + "/purchases" ;
+            log.info("[ VAR ] [ POST url: {} ]", url);
             webClient.post()
-                .uri("/purchases")
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Basic " + token)
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache")
                 .header(HttpHeaders.ACCEPT, "application/json")

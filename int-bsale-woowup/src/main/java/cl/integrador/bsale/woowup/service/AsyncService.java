@@ -178,8 +178,13 @@ public class AsyncService {
     }
 
     private boolean isEmailValidoDelCliente(String email, Cliente u) {
-        if( !checkAllIncomingMail.equalsIgnoreCase("1")){ return true; }
-        if( !u.isEmailValidate()){ return true; }
+        if( checkAllIncomingMail.equalsIgnoreCase("0")){
+            log.debug("[ ATENCION ] Esta configurado NO validar ningun correo y menos el {} ", email);
+            return true; }
+        if( !u.isEmailValidate()){
+            log.debug("[ ATENCION ] El cliente {} tiene configurado no validar correos como {} ", u.getIdCliente(), email);
+            return true;
+        }
 
         String resValidacionMail = emailService.getCheckEmailInfo(u.getIdCliente(), u.getAccessKey(), email);
         if(null == resValidacionMail){

@@ -31,6 +31,7 @@ public class IntegrationController {
     @Autowired
     private AsyncService asyncService;
 
+    @PostMapping("/")
     public ResponseEntity<Void> webhook(@RequestBody Senal senal,
                                         @RequestHeader("Cliente") String idCliente,
                                         @RequestHeader("Access_key") String accessKey) throws SQLException {

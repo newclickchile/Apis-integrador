@@ -69,6 +69,7 @@ public class EmailController {
             return ResponseEntity.status(HttpStatus.OK).body(responseBody);
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", email);
+            log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ]   {}", e.getMessage());
         }
         finLog();
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
