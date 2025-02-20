@@ -125,7 +125,7 @@ public class IntegrationHelper {
 //
 //        return cw;
 //    }
-    public static ClienteWoowup getObjectClientWoowup(BsaleResponse b, Cliente u) {
+    public static ClienteWoowup getObjectClientWoowup(BsaleResponse b, Cliente u, boolean emailValido) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
         if(null == b.getClient()){
             log.warn("[ WARN ] [ No viene el nodo CLIENT]" );
@@ -145,7 +145,11 @@ public class IntegrationHelper {
         cw.setStreet( b.getClient().getAddress() );
         cw.setState( b.getClient().getMunicipality() );
         cw.setCity( b.getClient().getCity() );
-        cw.setEmail( b.getClient().getEmail() );
+        if(emailValido) {
+            cw.setEmail(b.getClient().getEmail());
+        }else{
+            cw.setEmail("");
+        }
         cw.setCountry( u.getPais() );
         cw.setFirstName( b.getClient().getFirstName());
         cw.setLastName( b.getClient().getLastName());

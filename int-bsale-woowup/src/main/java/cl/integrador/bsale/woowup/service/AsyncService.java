@@ -83,11 +83,9 @@ public class AsyncService {
                             cerrarUnDataLog(idDataLog, "NOK", "Se ignora informaciòn. Falta el nodo 'Client'",
                                     "");
                         } else {
-
                             if (res == HttpStatus.BAD_REQUEST.value()) {
-                                log.warn("{} Se ignora informaciòn. Correo NO es valido" , idDataLog);
-                                cerrarUnDataLog(idDataLog, "NOK", "Se ignora informaciòn. Correo NO es valido",
-                                        "");
+                                log.warn("{} Se continua con la venta a pesar de que el correo NO es valido" , idDataLog);
+                                ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
                             } else {
                                 log.error("{} }Error en el proceso de Crear/Actualizar cliente", idDataLog);
                                 cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
@@ -150,29 +148,26 @@ public class AsyncService {
         if(!emailValido){
             log.warn("[ ATENCION ] el email {} no es valido segun servicio externo checkMail"
                     , bsaleResponse.getClient().getEmail() );
-            return HttpStatus.BAD_REQUEST.value();
-        }else {
-            log.debug("[ PROCESS ] procesoCreacionActualizacionDecliente: {}", u.getIdCliente());
-            ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(bsaleResponse, u);
-            if (null != cw) {
-                //            log.debug("[ VAR ] ClienteWoowup: {}", new Gson().toJson(cw));
-                HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
-                if (codeResponse == HttpStatus.OK) {
-                    log.debug("[ VAR ] Cliente existe ? {}", true);
-                    if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
-                        return HttpStatus.OK.value();
-                    }
-                } else {
-                    if (codeResponse == HttpStatus.NOT_FOUND) {
-                        log.debug("[ VAR ] Cliente existe ? {}", false);
-                        if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
-                            return HttpStatus.OK.value();
-                        }
-                    }
+        }
+        log.debug("[ PROCESS ] procesoCreacionActualizacionDecliente: {}", u.getIdCliente());
+        ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(bsaleResponse, u, emailValido);
+        if (null != cw) {
+            HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
+            if (codeResponse == HttpStatus.OK) {
+                log.debug("[ VAR ] Cliente existe ? {}", true);
+                if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
+                    return HttpStatus.OK.value();
                 }
             } else {
-                return HttpStatus.FORBIDDEN.value();
+                if (codeResponse == HttpStatus.NOT_FOUND) {
+                    log.debug("[ VAR ] Cliente existe ? {}", false);
+                    if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
+                        return HttpStatus.OK.value();
+                    }
+                }
             }
+        } else {
+            return HttpStatus.FORBIDDEN.value();
         }
         return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
