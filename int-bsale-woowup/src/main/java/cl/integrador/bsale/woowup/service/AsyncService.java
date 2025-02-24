@@ -116,7 +116,6 @@ public class AsyncService {
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
         VentaWoowup vw = IntegrationHelper.getObjectVentaWoowump(bsaleResponse);
-//        log.debug("[ VAR ] VentaWoowup : {}" , new Gson().toJson(vw));
         ArrayList<VentaWoowup.PurchaseDetail> newlistPd = new ArrayList<>();
         if(null != vw){
             for(VentaWoowup.PurchaseDetail pd: vw.getPurchase_detail()) {
@@ -130,7 +129,6 @@ public class AsyncService {
             }
         }
         vw.setPurchase_detail(newlistPd);
-        //log.debug("[ VAR ] VentaWoowup: {}", new Gson().toJson(vw));
         WoowupResponse httpCode = woowUp2Service.ingresarVenta(vw, u.getKeyWoowup());
         if(httpCode.getResultCode() == HttpStatus.OK.value()){
             cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())

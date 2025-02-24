@@ -16,41 +16,11 @@ import java.util.List;
 
 @Slf4j
 public class IntegrationHelper {
-//    public static VentaWoowup getObjectVentaWoowump(String resFromBase) {
-//        log.debug("[ PROCESS ] getObjectClientWoowup: {}", resFromBase);
-//        JsonObject orden = new JsonParser().parse(resFromBase).getAsJsonObject();
-//        VentaWoowup vw = new VentaWoowup();
-//        vw.setDocument( orden.get("client").getAsJsonObject().get("code").getAsString().replaceAll("-","").replaceAll(".","").toUpperCase() );
-//        vw.setInvoiceNumber( orden.get("number").getAsString() );
-//        vw.setBranchName( orden.get("office").getAsJsonObject().get("name").getAsString() );
-//        vw.setUseType( orden.get("document_type").getAsJsonObject().get("use").getAsString() );
-//
-//        VentaWoowup.Prices prices = new VentaWoowup.Prices();
-//        prices.setGross( orden.get("netAmount'").getAsDouble() );
-//        prices.setTax(orden.get("taxAmount''").getAsDouble());
-//        prices.setTotal(orden.get("totalAmount''").getAsDouble());
-//        vw.setPrices( prices);
-//
-//        String vendedor = "";
-//        JsonArray atributos = orden.get("attributes").getAsJsonObject().get("items").getAsJsonArray();
-//        for (JsonElement elemento : atributos) {
-//            JsonObject atributo = elemento.getAsJsonObject();
-//            String nombre = atributo.get("name").getAsString();
-//            if(nombre.equalsIgnoreCase("Vendedor")){
-//                JsonElement d = atributo.get("attributes").getAsJsonArray().get(0);
-//                JsonObject da = elemento.getAsJsonObject();
-//                vendedor = da.get("name").getAsString();
-//            }
-//        }
-//        VentaWoowup.Seller seller = new VentaWoowup.Seller();
-//        seller.setName(vendedor);
-//        vw.setSeller(seller);
-//
-//        return null;
-//    }
 
-    public static VentaWoowup getObjectVentaWoowump(BsaleResponse b) {
+
+    public static VentaWoowup getObjectVentaWoowump(BsaleResponse b ) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
+        int factor = b.getDocumentType().getUse() == 1?-1:1;
         VentaWoowup vw = new VentaWoowup();
         vw.setDocument( b.getClient().getCode().replaceAll("[-.]","").toUpperCase() );
         vw.setInvoice_number( b.getNumber().toString()  );
@@ -59,9 +29,9 @@ public class IntegrationHelper {
         //vw.setUseType( b.getDocumentType().getUse().toString() );
 
         VentaWoowup.Prices prices = new VentaWoowup.Prices();
-        prices.setGross( b.getNetAmount()  );
-        prices.setTax(b.getTaxAmount());
-        prices.setTotal(b.getTotalAmount());
+        prices.setGross( b.getNetAmount() * factor );
+        prices.setTax(b.getTaxAmount() * factor);
+        prices.setTotal(b.getTotalAmount() * factor);
         vw.setPrices( prices);
 
         String vendedor = "";
@@ -85,7 +55,7 @@ public class IntegrationHelper {
             pd.setProduct_name(d.getVariant().getDescription()
                     .replace("\"", "")
                     .replace("\t", ""));
-            pd.setUnit_price(d.getNetAmount());
+            pd.setUnit_price(d.getNetAmount() * factor);
             pd.setQuantity(d.getQuantity());
             pd.setBrand(d.getVariant().getHref());
             listpd.add(pd);
@@ -110,21 +80,6 @@ public class IntegrationHelper {
     }
 
 
-
-    //    public static ClienteWoowup getObjectClientWoowup(String resFromBase) {
-//        log.debug("[ PROCESS ] getObjectClientWoowup: {}", resFromBase);
-//        JsonObject orden = new JsonParser().parse(resFromBase).getAsJsonObject();
-//        ClienteWoowup cw = new ClienteWoowup();
-//        cw.setDocument( orden.get("client").getAsJsonObject().get("code").getAsString().replaceAll("-","").replaceAll(".","").toUpperCase() );
-//        cw.setStreet( orden.get("client").getAsJsonObject().get("address").getAsString() );
-//        cw.setState( orden.get("client").getAsJsonObject().get("municipality").getAsString() );
-//        cw.setCity( orden.get("client").getAsJsonObject().get("city").getAsString() );
-//        cw.setEmail( orden.get("client").getAsJsonObject().get("email").getAsString() );
-//        cw.setEmail( orden.get("client").getAsJsonObject().get("email").getAsString() );
-//        cw.setCountry( "CHL" );
-//
-//        return cw;
-//    }
     public static ClienteWoowup getObjectClientWoowup(BsaleResponse b, Cliente u, boolean emailValido) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
         if(null == b.getClient()){
