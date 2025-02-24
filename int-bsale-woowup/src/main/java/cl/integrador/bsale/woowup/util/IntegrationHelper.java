@@ -83,15 +83,15 @@ public class IntegrationHelper {
     public static ClienteWoowup getObjectClientWoowup(BsaleResponse b, Cliente u, boolean emailValido) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
         if(null == b.getClient()){
-            log.warn("[ WARN ] [ No viene el nodo CLIENT]" );
+            log.warn("[ WARN ] [ Se ignora información, No viene el nodo CLIENT]" );
             return null;
         }
-        if(null == b.getClient().getCode()){
-            log.warn("[ WARN ] [ No viene el nodo CODE]" );
+        if(null == b.getClient().getEmail()  || b.getClient().getEmail().trim().length() == 0){
+            log.warn("[ WARN ] [ Se ignora información, No viene el nodo EMAIL]" );
             return null;
         }
-        if(null == b.getClient().getEmail()){
-            log.warn("[ WARN ] [ No viene el nodo EMAIL]" );
+        if(null == b.getClient().getCode()  || b.getClient().getCode().trim().length() == 0){
+            log.warn("[ WARN ] [ Se ignora información, No viene el ID del Cliente ]" );
             return null;
         }
 
