@@ -136,7 +136,9 @@ public class AsyncService {
             cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
                     , StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
         }else {
-            cerrarUnDataLog(idDataLog, "NOK",httpCode.getResultCode() + " " + httpCode.getMessage(),
+            JsonObject msgRes = new JsonParser().parse(httpCode.getMessage()).getAsJsonObject();
+            cerrarUnDataLog(idDataLog, "NOK",httpCode.getResultCode() + " " +
+                            msgRes.get("message").getAsString(),
                     StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
         }
     }
