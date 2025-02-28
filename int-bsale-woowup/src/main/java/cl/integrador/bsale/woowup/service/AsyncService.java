@@ -71,7 +71,7 @@ public class AsyncService {
                     BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
                     log.warn("{} Se ignora la informacion por que el tipo documento {} no esta permitido", idDataLog ,
                             bsaleResponse.getDocumentType().getUse());
-                    cerrarUnDataLog(idDataLog, "NOK", "Se ignora la informacion por que el tipo documento no esta permitido",
+                    cerrarUnDataLog(idDataLog, "OK", "Se ignora la informacion por que el tipo documento no esta permitido",
                             "Tipo documento no permitida es : "+bsaleResponse.getDocumentType().getUse());
                 }else{
                     int res = procesoCreacionActualizacionDecliente(jsonBsale, clienteBD);
@@ -89,7 +89,7 @@ public class AsyncService {
                             } else {
                                 log.error("{} }Error en el proceso de Crear/Actualizar cliente", idDataLog);
                                 cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
-                                        StringEscapeUtils.unescapeJava(gson.toJson(clienteBD)));
+                                        "" );
                             }
                         }
                     }
@@ -97,7 +97,7 @@ public class AsyncService {
             } else {
                 log.error("{} Problemas al obtener info de BSALE de : {}", idDataLog, senal.getResource().split("/")[2]);
                 cerrarUnDataLog(idDataLog, "NOK", "Error en el proceso de leer desde Bsale los datos del cliente",
-                        StringEscapeUtils.unescapeJava( gson.toJson(clienteBD) ));
+                        ""  );
             }
         } else {
             log.warn("{} Se ignora la informacion por que la sucursal {} no esta autorizada", idDataLog, senal.getOfficeId());
