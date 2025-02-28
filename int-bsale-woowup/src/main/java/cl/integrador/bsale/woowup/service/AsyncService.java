@@ -71,7 +71,7 @@ public class AsyncService {
                     BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
                     log.warn("{} Se ignora la informacion por que el tipo documento {} no esta permitido", idDataLog ,
                             bsaleResponse.getDocumentType().getUse());
-                    cerrarUnDataLog(idDataLog, "OK", "Se ignora la informacion por que el tipo documento no esta permitido",
+                    cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Tipo documento no esta permitido",
                             "Tipo documento no permitida es : "+bsaleResponse.getDocumentType().getUse());
                 }else{
                     int res = procesoCreacionActualizacionDecliente(jsonBsale, clienteBD);
@@ -80,7 +80,7 @@ public class AsyncService {
                     } else {
                         if (res == HttpStatus.FORBIDDEN.value()) {
                             log.warn("{} Se ignora informaciòn. Falta el nodo 'Client'" , idDataLog);
-                            cerrarUnDataLog(idDataLog, "NOK", "Se ignora informaciòn. Falta el nodo 'Client'",
+                            cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. No viene dato del cliente",
                                     "");
                         } else {
                             if (res == HttpStatus.BAD_REQUEST.value()) {
