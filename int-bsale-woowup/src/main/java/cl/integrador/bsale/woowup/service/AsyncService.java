@@ -65,7 +65,7 @@ public class AsyncService {
         ClienteSucursal s = userSucursalDataRepository.findByClientAndSucursal(idCliente, senal.getOfficeId(), true);
         if (null == s) {
             log.debug("{}[ VAR ] Llamando servicio Bsale : {}", idDataLog , senal.getResource().split("/")[2]);
-            String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale());
+            String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale(), 1);
             if (null != jsonBsale) {
                 if(!esTipoPermitidoDeDocto(jsonBsale)){
                     BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
@@ -115,7 +115,7 @@ public class AsyncService {
         log.debug("{}[ PROCESS ] ingresarLaVenta: {}", idDataLog, u.getIdCliente());
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
-        VentaWoowup vw = IntegrationHelper.getObjectVentaWoowump(bsaleResponse);
+        VentaWoowup vw = IntegrationHelper.getObjectVentaWoowump(bsaleResponse, u);
         ArrayList<VentaWoowup.PurchaseDetail> newlistPd = new ArrayList<>();
         if(null != vw){
             for(VentaWoowup.PurchaseDetail pd: vw.getPurchase_detail()) {

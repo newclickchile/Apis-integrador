@@ -46,15 +46,19 @@ public class WooeUpHelper {
             res+= "\"email\": \""+cw.getEmail()+"\",";
         }
         if(cw.getFirstName().trim().length() == 0 && cw.getLastName().trim().length() == 0){
-            res += "\"first_name\": \"" + cw.getCompany() + "\"," +
+            res += "\"first_name\": \"" + cw.getCompany().replace("\"", "")
+                    .replace("\t", "") + "\"," +
                     "\"last_name\": \"\" ," ;
         }else {
             res += "\"first_name\": \"" +
-                    cw.getFirstName() + "\"," +
-                    "\"last_name\": \"" + cw.getLastName() + "\"," ;
+                    cw.getFirstName().replace("\"", "")
+                            .replace("\t", "") + "\"," +
+                    "\"last_name\": \"" + cw.getLastName().replace("\"", "")
+                    .replace("\t", "") + "\"," ;
         }
+        String st = cw.getStreet().trim().length() > 100? cw.getStreet().trim().substring(0,99): cw.getStreet().trim();
         res +=
-                "\"street\": \""+cw.getStreet()+"\"," +
+                "\"street\": \""+ st +"\"," +
                 "\"telephone\": \""+cw.getPhone()+"\"," +
                 "\"state\": \""+cw.getState()+"\"," +
                 "\"city\": \"" +cw.getCity()+ "\"," +

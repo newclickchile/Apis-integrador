@@ -5,6 +5,8 @@ import cl.integrador.bsale.woowup.model.pojo.VentaWoowup;
 import cl.integrador.bsale.woowup.model.pojo.WoowupResponse;
 import cl.integrador.bsale.woowup.util.WooeUpHelper;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,6 +116,12 @@ public class WoowUp2Service {
             log.info("[ CREATE Client ] Successful");
             return true;
         } catch (WebClientResponseException e) {
+            JsonObject jsonObject = JsonParser.parseString(e.getResponseBodyAsString()).getAsJsonObject();
+            String messsage = jsonObject.get("messsage").getAsString();
+            if(null!= messsage && messsage.contains("usuario existente")){
+                log.debug("{ ATENCION } Status code: {}. Response body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+                return true;
+            }
             log.error("Error Status code: {}. Response body: {}", e.getStatusCode(), e.getResponseBodyAsString());
         } catch (WebClientException e) {
             log.error("Error for: {}", cw.getDocument(), e.getMessage());

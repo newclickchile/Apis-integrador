@@ -18,13 +18,15 @@ import java.util.List;
 public class IntegrationHelper {
 
 
-    public static VentaWoowup getObjectVentaWoowump(BsaleResponse b ) {
+    public static VentaWoowup getObjectVentaWoowump(BsaleResponse b, Cliente u ) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
         int factor = b.getDocumentType().getUse() == 1?-1:1;
         VentaWoowup vw = new VentaWoowup();
         vw.setDocument( b.getClient().getCode().replaceAll("[-.]","").toUpperCase() );
-        vw.setInvoice_number( b.getNumber().toString()  );
-        vw.setChannel("in-store");
+        vw.setInvoice_number( b.getDocumentType().getId().toString().
+                concat("_").
+                concat(b.getNumber().toString() ) );
+        vw.setChannel(b.getOffice().getId().equals(u.getOfficeWeb()) ? "web": "in-store");
         vw.setBranch_name( b.getOffice().getName() );
         //vw.setUseType( b.getDocumentType().getUse().toString() );
 
