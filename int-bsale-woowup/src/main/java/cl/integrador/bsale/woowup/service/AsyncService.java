@@ -87,7 +87,7 @@ public class AsyncService {
                                 log.warn("{} Se continua con la venta a pesar de que el correo NO es valido" , idDataLog);
                                 ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
                             } else {
-                                log.error("{} }Error en el proceso de Crear/Actualizar cliente", idDataLog);
+                                log.error("{} Error en el proceso de Crear/Actualizar cliente", idDataLog);
                                 cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
                                         "" );
                             }
