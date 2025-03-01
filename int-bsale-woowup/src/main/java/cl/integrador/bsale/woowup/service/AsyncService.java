@@ -80,9 +80,8 @@ public class AsyncService {
     private void procesarEvento(Long idDataLog, Senal senal, Cliente clienteBD, String idCliente) {
         Gson gson = new Gson();
         ClienteSucursal sucursal = userSucursalDataRepository.findByClientAndSucursal(idCliente, senal.getOfficeId(), true);
-
         if (sucursal == null) {
-            procesarSinSucursal(idDataLog, senal, clienteBD, gson);
+            procesarEventoDeEsaSucursal(idDataLog, senal, clienteBD, gson);
         } else {
             log.warn("{} Se ignora la informacion por que la sucursal {} no esta autorizada", idDataLog, senal.getOfficeId());
             cerrarUnDataLog(idDataLog, "NOK", "Se ignora la informacion por que la sucursal no esta autorizada",
@@ -90,10 +89,9 @@ public class AsyncService {
         }
     }
 
-    private void procesarSinSucursal(Long idDataLog, Senal senal, Cliente clienteBD, Gson gson) {
+    private void procesarEventoDeEsaSucursal(Long idDataLog, Senal senal, Cliente clienteBD, Gson gson) {
         log.debug("{}[ VAR ] Llamando servicio Bsale : {}", idDataLog, senal.getResource().split("/")[2]);
         String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale(), 1);
-
         if (jsonBsale != null) {
             if (!esTipoPermitidoDeDocto(jsonBsale)) {
                 manejarDocumentoNoPermitido(idDataLog, jsonBsale, gson);
@@ -133,9 +131,6 @@ public class AsyncService {
                 cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente", "");
                 break;
         }
-        log.debug("{}[ ============================ ]", idDataLog);
-        log.debug("{}[ =   E N D      A S Y N C   = ]", idDataLog);
-        log.debug("{}[ ============================ ]", idDataLog);
     }
 
 
