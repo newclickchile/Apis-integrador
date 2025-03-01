@@ -26,6 +26,7 @@ public class Bsale2Service {
     }
 
     public String getInfo(String jsonName, String token, int reintentos)   {
+        boolean reintentar = false;
         try {
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", jsonName);
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", token);
@@ -40,8 +41,12 @@ public class Bsale2Service {
                     .block();
         } catch (WebClientResponseException e) {
             log.error("Error for: {}. Status code: {}. Response body: {}", jsonName, e.getStatusCode(), e.getResponseBodyAsString());
+            reintentar = true;
         } catch (WebClientException e) {
             log.error("Error for {}: {}", jsonName, e.getMessage());
+            reintentar = true;
+        }
+        if(reintentar){
             if(reintentos <= 3){
                 log.error("REINTENTO {} for {}: {}", reintentos, jsonName, e.getMessage());
                 try {
@@ -52,7 +57,6 @@ public class Bsale2Service {
                 reintentos++;
                 return getInfo(jsonName, token, reintentos );
             }
-
         }
         return null;
     }
