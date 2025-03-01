@@ -16,7 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -59,7 +59,7 @@ public class AsyncService {
 
     @Async("asyncTaskExecutor")
     public void procesoAsyncDelEvento(Senal senal, Cliente clienteBD, String idCliente, String accessKey) {
-        Long idDataLog = crearDataLog(senal, clienteBD, idCliente);
+        Long idDataLog = crearDataLog(senal, idCliente);
         log.debug("{}[ ================================ ]", idDataLog);
         log.debug("{}[ =   S T A R T      A S Y N C   = ]", idDataLog);
         log.debug("{}[ ================================ ]", idDataLog);
@@ -143,7 +143,7 @@ public class AsyncService {
             for(VentaWoowup.PurchaseDetail pd: vw.getPurchase_detail()) {
                 String jsonProducto = bsale2Service.getProduct(pd.getBrand(), u.getKeyBsale());
                 if (null != jsonProducto) {
-                    JsonObject orden = new JsonParser().parse(jsonProducto).getAsJsonObject();
+                     JsonObject orden = JsonParser.parseString(jsonProducto).getAsJsonObject();
                     pd.setBrand(orden.get("product").getAsJsonObject().get("name")
                             .getAsString().replace("\"", "") );
                 }
@@ -156,7 +156,7 @@ public class AsyncService {
             cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
                     , StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
         }else {
-            JsonObject msgRes = new JsonParser().parse(httpCode.getMessage()).getAsJsonObject();
+            JsonObject msgRes = JsonParser.parseString(httpCode.getMessage()).getAsJsonObject();
             cerrarUnDataLog(idDataLog, "NOK",httpCode.getResultCode() + " " +
                             msgRes.get("message").getAsString(),
                     StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
@@ -166,34 +166,49 @@ public class AsyncService {
     private HttpStatus procesoCreacionActualizacionDecliente(String jsonBsale, Cliente u) {
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
-        boolean emailValido = isEmailValidoDelCliente(
-                null == bsaleResponse.getClient() ? "": bsaleResponse.getClient().getEmail(), u);
-        if(!emailValido){
-            log.warn("[ ATENCION ] el email {} no es valido segun servicio externo checkMail"
-                    , bsaleResponse.getClient().getEmail() );
-        }
-        log.debug("[ PROCESS ] procesoCreacionActualizacionDecliente: {}", u.getIdCliente());
+
+        boolean emailValido = validarEmailDelCliente(bsaleResponse, u);
         ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(bsaleResponse, u, emailValido);
-        if (null != cw) {
-            HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
-            if (codeResponse == HttpStatus.OK) {
+
+        if (cw == null) {
+            return HttpStatus.FORBIDDEN;
+        }
+
+        HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
+        return manejarRespuestaDelServicio(cw, codeResponse, u);
+    }
+
+    private boolean validarEmailDelCliente(BsaleResponse bsaleResponse, Cliente u) {
+        String email = (bsaleResponse.getClient() != null) ? bsaleResponse.getClient().getEmail() : "";
+        boolean emailValido = isEmailValidoDelCliente(email, u);
+
+        if (!emailValido) {
+            log.warn("[ ATENCION ] el email {} no es valido segun servicio externo checkMail", email);
+        }
+
+        return emailValido;
+    }
+
+    private HttpStatus manejarRespuestaDelServicio(ClienteWoowup cw, HttpStatusCode codeResponse, Cliente u) {
+        switch (codeResponse) {
+            case HttpStatus.OK:
                 log.debug("[ VAR ] Cliente existe ? {}", true);
                 if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
-                    return HttpStatus.OK ;
+                    return HttpStatus.OK;
                 }
-            } else {
-                if (codeResponse == HttpStatus.NOT_FOUND) {
-                    log.debug("[ VAR ] Cliente existe ? {}", false);
-                    if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
-                        return HttpStatus.OK ;
-                    }
+                break;
+            case HttpStatus.NOT_FOUND:
+                log.debug("[ VAR ] Cliente existe ? {}", false);
+                if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
+                    return HttpStatus.OK;
                 }
-            }
-        } else {
-            return HttpStatus.FORBIDDEN ;
+                break;
+            default:
+                return HttpStatus.INTERNAL_SERVER_ERROR;
         }
-        return HttpStatus.INTERNAL_SERVER_ERROR ;
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
+
 
     private boolean isEmailValidoDelCliente(String email, Cliente u) {
         if( null == email || email.trim().length() == 0){
@@ -232,16 +247,13 @@ public class AsyncService {
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
 
-        if(null != bsaleResponse &&
+        return null != bsaleResponse &&
                 (bsaleResponse.getDocumentType().getUse() == 0 ||
                  bsaleResponse.getDocumentType().getUse() == 1
-                ) ){
-            return true;
-        }
-       return false;
+                ) ;
     }
 
-    private Long crearDataLog(Senal senal, Cliente u, String idCliente) {
+    private Long crearDataLog(Senal senal, String idCliente) {
         Log l = new Log();
         l.setIdCliente(idCliente);
         l.setIdAplicativo("INT-BSALE-WOOWUP");
