@@ -13,7 +13,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class EmailService {
 
     @Value("${url.check.mail}")
-    private String CALL_URL;
+    private String callUrl;
 
     private final WebClient webClient;
 
@@ -26,7 +26,7 @@ public class EmailService {
     public String getCheckEmailInfo(String cliente, String token, String correo) {
         try {
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} - {} ]", cliente, correo);
-            String url = CALL_URL + "/check?email="+correo;
+            String url = callUrl + "/check?email="+correo;
             log.info("[ VAR ] [ GET url: {} ]", url);
 
             return webClient.get()

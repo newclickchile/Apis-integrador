@@ -16,11 +16,13 @@ import java.util.List;
 
 @Slf4j
 public class IntegrationHelper {
-
+    private IntegrationHelper() {
+       // nothing
+    }
 
     public static VentaWoowup getObjectVentaWoowump(BsaleResponse b, Cliente u ) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
-        int factor = b.getDocumentType().getUse() == 1?-1:1;
+        float factor = b.getDocumentType().getUse() == 1?-1:1;
         VentaWoowup vw = new VentaWoowup();
         vw.setDocument( b.getClient().getCode().replaceAll("[-.]","").toUpperCase() );
         vw.setInvoice_number( b.getDocumentType().getId().toString().
@@ -28,7 +30,6 @@ public class IntegrationHelper {
                 concat(b.getNumber().toString() ) );
         vw.setChannel(b.getOffice().getId().equals(u.getOfficeWeb()) ? "web": "in-store");
         vw.setBranch_name( b.getOffice().getName() );
-        //vw.setUseType( b.getDocumentType().getUse().toString() );
 
         VentaWoowup.Prices prices = new VentaWoowup.Prices();
         prices.setGross( b.getNetAmount() * factor );
@@ -39,7 +40,7 @@ public class IntegrationHelper {
         String vendedor = "";
         if(null != b.getSellers().getItems()) {
             List<Item__2> items = b.getSellers().getItems();
-            if (items.size() > 0) {
+            if (items.isEmpty()) {
                 Item__2 d = items.get(0);
                 vendedor = d.getFirstName().concat(" ").concat(d.getLastName());
             }

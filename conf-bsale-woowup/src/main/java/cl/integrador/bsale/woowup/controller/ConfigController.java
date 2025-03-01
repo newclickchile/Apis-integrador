@@ -122,14 +122,11 @@ public class ConfigController {
     }
 
     private boolean validaDatosEntrada(Senal senal) {
-        if(null == senal
+        return null == senal
                 || null == senal.getClientId()
                 || null == senal.getCodigoPais()
                 || null == senal.getKeyWoowup()
-                || null == senal.getSecretKeyBsale()) {
-            return true;
-        }
-        return false;
+                || null == senal.getSecretKeyBsale() ;
     }
 
 

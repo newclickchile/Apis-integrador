@@ -1,7 +1,7 @@
 package cl.integrador.bsale.woowup.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,7 +15,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class Bsale2Service {
 
     @Value("${url.bsale}")
-    private String CALL_URL;
+    private String callUrl;
 
     private final WebClient webClient;
 
@@ -30,7 +30,7 @@ public class Bsale2Service {
         try {
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", jsonName);
             log.info("[ GET INFO FROM BSALE ] [ Call for: {} ]", token);
-            String url = CALL_URL + "/documents/" + jsonName + "?expand=details,client,document_type,office,attributes,payments,sellers";
+            String url = callUrl + "/documents/" + jsonName + "?expand=details,client,document_type,office,attributes,payments,sellers";
             log.info("[ VAR ] [ GET url: {} ]", url);
             return webClient.get()
                     .uri(url)
@@ -46,8 +46,7 @@ public class Bsale2Service {
             log.error("Error for {}: {}", jsonName, e.getMessage());
             reintentar = true;
         }
-        if(reintentar){
-            if(reintentos <= 3){
+        if(reintentar && reintentos <= 3){
                 log.error("REINTENTO {} for {} ", reintentos, jsonName );
                 try {
                     Thread.sleep(1000);
@@ -56,7 +55,6 @@ public class Bsale2Service {
                 }
                 reintentos++;
                 return getInfo(jsonName, token, reintentos );
-            }
         }
         return null;
     }
