@@ -51,6 +51,9 @@ public class AsyncService {
     @Autowired
     private WoowUp2Service woowUp2Service;
 
+    @Autowired
+    private RedisService redisService;
+
     @Value("${check.mail}")
     private String checkAllIncomingMail;
 
@@ -61,48 +64,53 @@ public class AsyncService {
         log.debug("{}[ =   S T A R T      A S Y N C   = ]", idDataLog);
         log.debug("{}[ ================================ ]", idDataLog);
         log.debug("{}[ VAR ] Buscando los datos del cliente : {}" , idDataLog, idCliente);
-        Gson gson = new Gson();
-        ClienteSucursal s = userSucursalDataRepository.findByClientAndSucursal(idCliente, senal.getOfficeId(), true);
-        if (null == s) {
-            log.debug("{}[ VAR ] Llamando servicio Bsale : {}", idDataLog , senal.getResource().split("/")[2]);
-            String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale(), 1);
-            if (null != jsonBsale) {
-                if(!esTipoPermitidoDeDocto(jsonBsale)){
-                    BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
-                    log.warn("{} Se ignora la informacion por que el tipo documento {} no esta permitido", idDataLog ,
-                            bsaleResponse.getDocumentType().getUse());
-                    cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Tipo documento no esta permitido",
-                            "Tipo documento no permitida es : "+bsaleResponse.getDocumentType().getUse());
-                }else{
-                    int res = procesoCreacionActualizacionDecliente(jsonBsale, clienteBD);
-                    if (res == HttpStatus.OK.value()) {
-                        ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
-                    } else {
-                        if (res == HttpStatus.FORBIDDEN.value()) {
-                            log.warn("{} Se ignora informaciòn. Falta el nodo 'Client'" , idDataLog);
-                            cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. No viene dato del cliente",
-                                    "");
+        if (!redisService.validarResource(senal.getResourceId())){
+            Gson gson = new Gson();
+            ClienteSucursal s = userSucursalDataRepository.findByClientAndSucursal(idCliente, senal.getOfficeId(), true);
+            if (null == s) {
+                log.debug("{}[ VAR ] Llamando servicio Bsale : {}", idDataLog , senal.getResource().split("/")[2]);
+                String jsonBsale = bsale2Service.getInfo(senal.getResource().split("/")[2], clienteBD.getKeyBsale(), 1);
+                if (null != jsonBsale) {
+                    if(!esTipoPermitidoDeDocto(jsonBsale)){
+                        BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
+                        log.warn("{} Se ignora la informacion por que el tipo documento {} no esta permitido", idDataLog ,
+                                bsaleResponse.getDocumentType().getUse());
+                        cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Tipo documento no esta permitido",
+                                "Tipo documento no permitida es : "+bsaleResponse.getDocumentType().getUse());
+                    }else{
+                        int res = procesoCreacionActualizacionDecliente(jsonBsale, clienteBD);
+                        if (res == HttpStatus.OK.value()) {
+                            ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
                         } else {
-                            if (res == HttpStatus.BAD_REQUEST.value()) {
-                                log.warn("{} Se continua con la venta a pesar de que el correo NO es valido" , idDataLog);
-                                ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
+                            if (res == HttpStatus.FORBIDDEN.value()) {
+                                log.warn("{} Se ignora informaciòn. Falta el nodo 'Client'" , idDataLog);
+                                cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. No viene dato del cliente",
+                                        "");
                             } else {
-                                log.error("{} Error en el proceso de Crear/Actualizar cliente", idDataLog);
-                                cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
-                                        "" );
+                                if (res == HttpStatus.BAD_REQUEST.value()) {
+                                    log.warn("{} Se continua con la venta a pesar de que el correo NO es valido" , idDataLog);
+                                    ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
+                                } else {
+                                    log.error("{} Error en el proceso de Crear/Actualizar cliente", idDataLog);
+                                    cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente",
+                                            "" );
+                                }
                             }
                         }
                     }
+                } else {
+                    log.error("{} Problemas al obtener info de BSALE de : {}", idDataLog, senal.getResource().split("/")[2]);
+                    cerrarUnDataLog(idDataLog, "NOK", "Error en el proceso de leer desde Bsale los datos del cliente",
+                            ""  );
                 }
             } else {
-                log.error("{} Problemas al obtener info de BSALE de : {}", idDataLog, senal.getResource().split("/")[2]);
-                cerrarUnDataLog(idDataLog, "NOK", "Error en el proceso de leer desde Bsale los datos del cliente",
-                        ""  );
+                log.warn("{} Se ignora la informacion por que la sucursal {} no esta autorizada", idDataLog, senal.getOfficeId());
+                cerrarUnDataLog(idDataLog, "NOK", "Se ignora la informacion por que la sucursal no esta autorizada",
+                       "La sucursal no permitida es : "+ senal.getOfficeId());
             }
-        } else {
-            log.warn("{} Se ignora la informacion por que la sucursal {} no esta autorizada", idDataLog, senal.getOfficeId());
-            cerrarUnDataLog(idDataLog, "NOK", "Se ignora la informacion por que la sucursal no esta autorizada",
-                   "La sucursal no permitida es : "+ senal.getOfficeId());
+        }else{
+            log.warn("{} Se ignora la informacion por que el resource {} ya fue procesado", idDataLog, senal.getResourceId());
+            cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Resource ya fue informado", "");
         }
         log.debug("{}[ ============================ ]", idDataLog);
         log.debug("{}[ =   E N D      A S Y N C   = ]", idDataLog);
