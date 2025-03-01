@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/v1")

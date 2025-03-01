@@ -5,7 +5,6 @@ import cl.integrador.bsale.woowup.model.pojo.Senal;
 import cl.integrador.bsale.woowup.repository.UserDataRepository;
 import cl.integrador.bsale.woowup.repository.UserSucursalDataRepository;
 import cl.integrador.bsale.woowup.service.AsyncService;
-import cl.integrador.bsale.woowup.service.EmailService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
