@@ -64,14 +64,12 @@ public class AsyncService {
         log.debug("{}[ =   S T A R T      A S Y N C   = ]", idDataLog);
         log.debug("{}[ ================================ ]", idDataLog);
         log.debug("{}[ VAR ] Buscando los datos del cliente : {}", idDataLog, idCliente);
-
         if (!redisService.validarResource(senal.getResourceId())) {
             procesarEvento(idDataLog, senal, clienteBD, idCliente);
         } else {
             log.warn("{} Se ignora la informacion por que el resource {} ya fue procesado", idDataLog, senal.getResourceId());
             cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Resource ya fue informado", "");
         }
-
         log.debug("{}[ ============================ ]", idDataLog);
         log.debug("{}[ =   E N D      A S Y N C   = ]", idDataLog);
         log.debug("{}[ ============================ ]", idDataLog);
