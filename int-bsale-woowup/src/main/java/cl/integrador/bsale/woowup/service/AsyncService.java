@@ -133,6 +133,9 @@ public class AsyncService {
                 cerrarUnDataLog(idDataLog, "NOK", res + " Error en el proceso de Crear/Actualizar cliente", "");
                 break;
         }
+        log.debug("{}[ ============================ ]", idDataLog);
+        log.debug("{}[ =   E N D      A S Y N C   = ]", idDataLog);
+        log.debug("{}[ ============================ ]", idDataLog);
     }
 
 

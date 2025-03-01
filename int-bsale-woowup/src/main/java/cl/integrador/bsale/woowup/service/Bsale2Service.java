@@ -48,7 +48,7 @@ public class Bsale2Service {
         }
         if(reintentar){
             if(reintentos <= 3){
-                log.error("REINTENTO {} for {}: {}", reintentos, jsonName, e.getMessage());
+                log.error("REINTENTO {} for {} ", reintentos, jsonName );
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
