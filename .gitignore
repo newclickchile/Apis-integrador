@@ -37,3 +37,4 @@ target/
 *.prefs
 \.settings
 *.factorypath
+*.iml

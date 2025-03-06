@@ -36,6 +36,7 @@ public class IntegrationController {
                                         @RequestHeader("Access_key") String accessKey) throws SQLException {
         log.info("[ ==================================== ]");
         log.info("[ =   S T A R T      W E B H O O K   = ]");
+        log.info("[ =             B S A L E            = ]");
         log.info("[ ==================================== ]");
         log.debug("[ WEBHOOK ] Received request for process: {}", new Gson().toJson(senal));
         if(null == idCliente || null == accessKey|| null == senal){
