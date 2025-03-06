@@ -151,6 +151,7 @@ public class SaleAsyncService {
     private boolean validarEmailDelCliente(String jsonAlegra, Cliente u) {
         JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
         String email = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("email")
                 .getAsString();

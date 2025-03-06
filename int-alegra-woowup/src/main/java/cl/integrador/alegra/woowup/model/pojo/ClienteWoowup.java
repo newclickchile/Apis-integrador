@@ -32,6 +32,10 @@ public class ClienteWoowup {
 
     private String phone;
 
+    private String postcode;
+
+    private String service_uid;
+
     private Double points;
 
     @Override
@@ -47,6 +51,8 @@ public class ClienteWoowup {
                 ", country='" + country + '\'' +
                 ", company='" + company + '\'' +
                 ", phone='" + phone + '\'' +
+                ", postcode='" + postcode + '\'' +
+                ", service_uid='" + service_uid + '\'' +
                 ", points=" + points +
                 '}';
     }

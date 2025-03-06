@@ -63,6 +63,7 @@ public class ClientAsyncService {
         log.debug("{}[ VAR ] Buscando los datos del cliente : {}", idDataLog, idCliente);
         JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
         String id = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("identification")
                 .getAsString();
@@ -85,7 +86,7 @@ public class ClientAsyncService {
 
 
     private void procesarEventoCliente(Long idDataLog, String jsonAlegra, Cliente clienteBD) {
-        HttpStatus res = procesoCreacionActualizacionDecliente(jsonAlegra, clienteBD);
+        HttpStatus res = procesoCreacionActualizacionDecliente(idDataLog, jsonAlegra, clienteBD);
         switch (res) {
             case HttpStatus.OK:
                 break;
@@ -122,19 +123,29 @@ public class ClientAsyncService {
         }
     }
 
-    private HttpStatus procesoCreacionActualizacionDecliente(String jsonAlegra, Cliente u) {
+    private HttpStatus procesoCreacionActualizacionDecliente(long idDataLog, String jsonAlegra, Cliente u) {
         boolean emailValido = validarEmailDelCliente(jsonAlegra, u);
         ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(jsonAlegra, u, emailValido);
         if (cw == null) {
             return HttpStatus.FORBIDDEN;
         }
         HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
+        if (codeResponse.value() == 200) {
+            Gson gson = new Gson();
+            cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
+                    , StringEscapeUtils.unescapeJava( gson.toJson(cw) ));
+
+        }
+
+
+
         return manejarRespuestaDelServicio(cw, codeResponse, u);
     }
 
     private boolean validarEmailDelCliente(String jsonAlegra, Cliente u) {
         JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
         String email = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("email")
                 .getAsString();
@@ -238,9 +249,10 @@ public class ClientAsyncService {
     private boolean esTipoCliente(String jsonAlegra ) {
         JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
         String tipoCliente = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("type")
-                .getAsString();
+                .getAsJsonArray().get(0).getAsString();
         return tipoCliente.equals("client");
     }
 

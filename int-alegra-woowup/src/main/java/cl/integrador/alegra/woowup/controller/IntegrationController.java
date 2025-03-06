@@ -20,8 +20,6 @@ import java.util.Base64;
 @Slf4j
 public class IntegrationController {
 
-    static final String RESPUESTA_UNAUTHORIZED = "{ \"code\": 401, \"msg\": \"401 UNAUTHORIZED\" }";
-
     @Autowired
     private UserDataRepository userDataRepository;
 
@@ -41,7 +39,7 @@ public class IntegrationController {
         log.info("[ =   S T A R T      N E W - I N V O I C E   = ]");
         log.info("[ =                  A L E G R A             = ]");
         log.info("[ ============================================ ]");
-        log.debug("[ WEBHOOK ] Received request for process: {}", new Gson().toJson(senal));
+        log.debug("[ WEBHOOK ] Received request for process: {}",  senal );
         if(null == authorization ||   null == senal){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -64,7 +62,7 @@ public class IntegrationController {
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", senal);
         }
-        log.debug("[ WEBHOOK ] Request procesed: {}", new Gson().toJson(senal));
+        log.debug("[ WEBHOOK ] Request procesed: {}",  senal );
         log.info("[ ======================================== ]");
         log.info("[ =   E N D      N E W - I N V O I C E   = ]");
         log.info("[ ======================================== ]");
@@ -77,7 +75,7 @@ public class IntegrationController {
         log.info("[ =   S T A R T      N E W - C L I E N T    = ]");
         log.info("[ =                  A L E G R A            = ]");
         log.info("[ =========================================== ]");
-        log.debug("[ WEBHOOK ] Received request for process: {}", new Gson().toJson(senal));
+        log.debug("[ WEBHOOK ] Received request for process: {}",  senal );
         if(null == authorization ||   null == senal){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -100,7 +98,7 @@ public class IntegrationController {
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", senal);
         }
-        log.debug("[ WEBHOOK ] Request procesed: {}", new Gson().toJson(senal));
+        log.debug("[ WEBHOOK ] Request procesed: {}", senal );
         log.info("[ ====================================== ]");
         log.info("[ =   E N D      N E W - C L I E N T   = ]");
         log.info("[ ====================================== ]");

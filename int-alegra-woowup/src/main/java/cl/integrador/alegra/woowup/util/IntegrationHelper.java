@@ -27,6 +27,7 @@ public class IntegrationHelper {
 
         VentaWoowup vw = new VentaWoowup();
         vw.setDocument( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("identification")
                 .getAsString().replaceAll("[-.]","").toUpperCase() );
@@ -100,11 +101,12 @@ public class IntegrationHelper {
     public static ClienteWoowup getObjectClientWoowup(String jsonAlegra, Cliente u, boolean emailValido) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
         JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
-        if(null == jsonObject.get("client") ){
+        if(null == jsonObject.getAsJsonObject("message").get("client") ){
             log.warn("[ WARN ] [ Se ignora información, No viene el nodo CLIENT]" );
             return null;
         }
         String email = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("email")
                 .getAsString();
@@ -114,6 +116,7 @@ public class IntegrationHelper {
             return null;
         }
         String id = jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("identification")
                 .getAsString();
@@ -125,16 +128,19 @@ public class IntegrationHelper {
         ClienteWoowup cw = new ClienteWoowup();
         cw.setDocument( id.replaceAll("[-.]","").toUpperCase() );
         cw.setStreet( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .getAsJsonObject("address")
                 .get("address")
                 .getAsString() );
         cw.setState( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .getAsJsonObject("address")
                 .get("province")
                 .getAsString());
         cw.setCity( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .getAsJsonObject("address")
                 .get("city")
@@ -146,16 +152,30 @@ public class IntegrationHelper {
         }
         cw.setCountry( u.getPais() );
         cw.setFirstName( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
-                .get("name")
+                .getAsJsonObject("name")
+                .get("fullname")
                 .getAsString());
         cw.setLastName( "");
         cw.setCompany( "");
         cw.setPoints( 0.0);
         cw.setPhone( jsonObject
+                .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("phonePrimary")
                 .getAsString());
+        cw.setPostcode( jsonObject
+                .getAsJsonObject("message")
+                .getAsJsonObject("client")
+                .getAsJsonObject("address")
+                .get("postalCode")
+                .getAsString());
+        cw.setService_uid(String.valueOf( jsonObject
+                .getAsJsonObject("message")
+                .getAsJsonObject("client")
+                .get("id")
+                .getAsInt()));
         return cw;
     }
 

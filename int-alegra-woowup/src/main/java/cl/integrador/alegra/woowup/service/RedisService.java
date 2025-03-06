@@ -13,10 +13,10 @@ public class RedisService {
     private RedisTemplate redisTemplate;
 
     public boolean validarResource(String clave) {
-        if (redisTemplate.opsForValue().get(clave) != null) {
+        if (redisTemplate.opsForValue().get("CLIALEGRA" + clave) != null) {
             return true; // El valor ya existe en Redis
         } else {
-            redisTemplate.opsForValue().set(clave, "Procesando", 5, TimeUnit.MINUTES); // Crear valor con duración de 5 minutos
+            redisTemplate.opsForValue().set("CLIALEGRA" +clave, "Procesando", 5, TimeUnit.MINUTES); // Crear valor con duración de 5 minutos
             return false; // El valor ha sido creado en Redis
         }
     }

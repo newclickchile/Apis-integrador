@@ -19,8 +19,6 @@ import java.sql.SQLException;
 @Slf4j
 public class IntegrationController {
 
-    static final String RESPUESTA_UNAUTHORIZED = "{ \"code\": 401, \"msg\": \"401 UNAUTHORIZED\" }";
-
     @Autowired
     private UserDataRepository userDataRepository;
 
