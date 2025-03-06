@@ -130,16 +130,7 @@ public class ClientAsyncService {
             return HttpStatus.FORBIDDEN;
         }
         HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
-        if (codeResponse.value() == 200) {
-            Gson gson = new Gson();
-            cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
-                    , StringEscapeUtils.unescapeJava( gson.toJson(cw) ));
-
-        }
-
-
-
-        return manejarRespuestaDelServicio(cw, codeResponse, u);
+        return manejarRespuestaDelServicio(idDataLog, cw, codeResponse, u);
     }
 
     private boolean validarEmailDelCliente(String jsonAlegra, Cliente u) {
@@ -158,17 +149,29 @@ public class ClientAsyncService {
         return emailValido;
     }
 
-    private HttpStatus manejarRespuestaDelServicio(ClienteWoowup cw, HttpStatusCode codeResponse, Cliente u) {
+    private HttpStatus manejarRespuestaDelServicio(long idDataLog, ClienteWoowup cw, HttpStatusCode codeResponse, Cliente u) {
         switch (codeResponse) {
             case HttpStatus.OK:
                 log.debug("[ VAR ] Cliente existe ? {}", true);
                 if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
+                    if (codeResponse.value() == 200) {
+                        Gson gson = new Gson();
+                        cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
+                                , StringEscapeUtils.unescapeJava( gson.toJson(cw) ));
+
+                    }
                     return HttpStatus.OK;
                 }
                 break;
             case HttpStatus.NOT_FOUND:
                 log.debug("[ VAR ] Cliente existe ? {}", false);
                 if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
+                    if (codeResponse.value() == 200) {
+                        Gson gson = new Gson();
+                        cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
+                                , StringEscapeUtils.unescapeJava( gson.toJson(cw) ));
+
+                    }
                     return HttpStatus.OK;
                 }
                 break;
