@@ -62,7 +62,8 @@ public class WooeUpHelper {
                 "\"telephone\": \""+cw.getPhone()+"\"," +
                 "\"state\": \""+cw.getState()+"\"," +
                 "\"city\": \"" +cw.getCity()+ "\"," +
-                "\"country\":\"" + cw.getCountry()+ "\" " +
+                "\"country\":\"" + cw.getCountry()+ "\", " +
+                "\"postcode\":\"" + cw.getPostcode()+ "\"  " +
                 "}";
         return res;
     }

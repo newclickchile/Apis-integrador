@@ -1,12 +1,12 @@
-package cl.integrador.alegra.woowup.service;
+package cl.integrador.busint.woowup.service;
 
-import cl.integrador.alegra.woowup.model.entity.Cliente;
-import cl.integrador.alegra.woowup.model.entity.Log;
-import cl.integrador.alegra.woowup.model.pojo.ClienteWoowup;
-import cl.integrador.alegra.woowup.repository.LogRepository;
-import cl.integrador.alegra.woowup.repository.UserDataRepository;
-import cl.integrador.alegra.woowup.repository.UserSucursalDataRepository;
-import cl.integrador.alegra.woowup.util.IntegrationHelper;
+import cl.integrador.busint.woowup.model.entity.Cliente;
+import cl.integrador.busint.woowup.model.entity.Log;
+import cl.integrador.busint.woowup.model.pojo.ClienteWoowup;
+import cl.integrador.busint.woowup.repository.LogRepository;
+import cl.integrador.busint.woowup.repository.UserDataRepository;
+import cl.integrador.busint.woowup.repository.UserSucursalDataRepository;
+import cl.integrador.busint.woowup.util.IntegrationHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -37,9 +37,6 @@ public class ClientAsyncService {
 
     @Autowired
     private EmailService emailService;
-
-    @Autowired
-    private Alegra2Service alegra2Service;
 
     @Autowired
     private WoowUp2Service woowUp2Service;

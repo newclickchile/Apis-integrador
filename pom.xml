@@ -26,7 +26,7 @@
 		<module>conf-bsale-woowup</module> 
 <module>checkMail</module>
  
-
+<module>int-busint-woowup</module>
         
     </modules>
     <name>newclick</name>
