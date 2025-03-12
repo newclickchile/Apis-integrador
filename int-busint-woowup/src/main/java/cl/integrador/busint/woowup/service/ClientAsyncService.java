@@ -50,23 +50,23 @@ public class ClientAsyncService {
 
 
     @Async("asyncTaskExecutor")
-    public void procesoAsyncDelClienteNuevo(String jsonAlegra, Cliente clienteBD, String idCliente, String accessKey) {
-        Long idDataLog = crearDataLog(jsonAlegra, idCliente);
+    public void procesoAsyncDelClienteNuevo(String jsonEvent, Cliente clienteBD, String idCliente, String accessKey) {
+        Long idDataLog = crearDataLog(jsonEvent, idCliente);
         escribeLogStartEnd(idDataLog, true);
         log.debug("{}[ VAR ] Buscando los datos del cliente : {}", idDataLog, idCliente);
-        JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
         String id = jsonObject
                 .getAsJsonObject("message")
                 .getAsJsonObject("client")
                 .get("identification")
                 .getAsString();
-        if(!esTipoCliente( jsonAlegra )){
+        if(!esTipoCliente( jsonEvent )){
             log.warn("{} Se ignora la informacion por que el type no es 'client'",
                     idDataLog, id);
             cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. Type no es 'client'", "");
         }else {
             if (!redisService.validarResource(id)) {
-                procesarEventoCliente(idDataLog, jsonAlegra, clienteBD);
+                procesarEventoCliente(idDataLog, jsonEvent, clienteBD);
             } else {
                 log.warn("{} Se ignora la informacion por que el resource {} ya fue procesado",
                         idDataLog, id);
@@ -78,8 +78,8 @@ public class ClientAsyncService {
 
 
 
-    private void procesarEventoCliente(Long idDataLog, String jsonAlegra, Cliente clienteBD) {
-        HttpStatus res = procesoCreacionActualizacionDecliente(idDataLog, jsonAlegra, clienteBD);
+    private void procesarEventoCliente(Long idDataLog, String jsonEvent, Cliente clienteBD) {
+        HttpStatus res = procesoCreacionActualizacionDecliente(idDataLog, jsonEvent, clienteBD);
         switch (res) {
             case HttpStatus.OK:
                 break;
@@ -94,9 +94,9 @@ public class ClientAsyncService {
         }
     }
 
-    private HttpStatus procesoCreacionActualizacionDecliente(long idDataLog, String jsonAlegra, Cliente u) {
-        boolean emailValido = validarEmailDelCliente(jsonAlegra, u);
-        ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(jsonAlegra, u, emailValido);
+    private HttpStatus procesoCreacionActualizacionDecliente(long idDataLog, String jsonEvent, Cliente u) {
+        boolean emailValido = validarEmailDelCliente(jsonEvent, u);
+        ClienteWoowup cw = IntegrationHelper.getObjectClientWoowup(jsonEvent, u, emailValido);
         if (cw == null) {
             return HttpStatus.FORBIDDEN;
         }
@@ -104,8 +104,8 @@ public class ClientAsyncService {
         return manejarRespuestaDelServicio(idDataLog, cw, codeResponse, u);
     }
 
-    private boolean validarEmailDelCliente(String jsonAlegra, Cliente u) {
-        JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
+    private boolean validarEmailDelCliente(String jsonEvent, Cliente u) {
+        JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
         String email = jsonObject
                 .getAsJsonObject("message")
                 .getAsJsonObject("client")
@@ -185,9 +185,9 @@ public class ClientAsyncService {
     private Long crearDataLog(String senal, String idCliente) {
         Log l = new Log();
         l.setIdCliente(idCliente);
-        l.setIdAplicativo("INT-ALEGRA-WOOWUP");
+        l.setIdAplicativo("INT-BUSINT-WOOWUP");
         l.setServer(getIpServer());
-        l.setSistemaOrigen("Alegra");
+        l.setSistemaOrigen("Busint");
         l.setFechaIngreso(new Date());
         l.setDataOrigen(  senal );
         l.setSistemaDestino("WOOWUP");
@@ -216,8 +216,8 @@ public class ClientAsyncService {
         return ipServer;
     }
 
-    private boolean esTipoCliente(String jsonAlegra ) {
-        JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
+    private boolean esTipoCliente(String jsonEvent ) {
+        JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
         String tipoCliente = jsonObject
                 .getAsJsonObject("message")
                 .getAsJsonObject("client")

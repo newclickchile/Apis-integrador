@@ -24,7 +24,7 @@ public class Cliente {
     private String  accessKey;
 
     @Column(name="key_bsale", nullable = true)
-    private String  keyAlegra;
+    private String  keyBusint;
 
     @Column(name="key_woowup", nullable = true)
     private String  keyWoowup;

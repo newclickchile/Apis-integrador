@@ -15,9 +15,9 @@ public class IntegrationHelper {
 
 
 
-    public static ClienteWoowup getObjectClientWoowup(String jsonAlegra, Cliente u, boolean emailValido) {
+    public static ClienteWoowup getObjectClientWoowup(String jsonEvent, Cliente u, boolean emailValido) {
         log.debug("[ PROCESS ] getObjectClientWoowup " );
-        JsonObject jsonObject = JsonParser.parseString(jsonAlegra).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(jsonEvent).getAsJsonObject();
         if(null == jsonObject.getAsJsonObject("message").get("client") ){
             log.warn("[ WARN ] [ Se ignora información, No viene el nodo CLIENT]" );
             return null;
