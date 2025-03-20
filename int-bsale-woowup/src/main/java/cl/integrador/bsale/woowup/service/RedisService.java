@@ -20,4 +20,11 @@ public class RedisService {
             return false; // El valor ha sido creado en Redis
         }
     }
+    public String buscaSku(String clave) {
+        return redisTemplate.opsForValue().get(clave).toString();
+    }
+    public boolean insertSku(String clave, String valor) {
+        redisTemplate.opsForValue().set(clave, valor);
+        return true;
+    }
 }
