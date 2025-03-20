@@ -21,7 +21,9 @@ public class RedisService {
         }
     }
     public String buscaSku(String clave) {
-        return redisTemplate.opsForValue().get(clave).toString();
+        return null == redisTemplate.opsForValue().get(clave)
+                ?null
+                :redisTemplate.opsForValue().get(clave).toString();
     }
     public boolean insertSku(String clave, String valor) {
         redisTemplate.opsForValue().set(clave, valor);

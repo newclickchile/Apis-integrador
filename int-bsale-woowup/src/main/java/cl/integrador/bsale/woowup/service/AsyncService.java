@@ -142,17 +142,19 @@ public class AsyncService {
         if(null != vw){
             for(VentaWoowup.PurchaseDetail pd: vw.getPurchase_detail()) {
                 String llave = u.getIdCliente().concat("_SKU_").concat(pd.getSku());
+                log.debug(llave);
                 if (null == redisService.buscaSku (llave) ) {
                     String jsonProducto = bsale2Service.getProduct(pd.getBrand(), u.getKeyBsale());
                     if (null != jsonProducto) {
                          JsonObject orden = JsonParser.parseString(jsonProducto).getAsJsonObject();
-                        pd.setBrand(orden.get("product").getAsJsonObject().get("name")
-                                .getAsString().replace("\"", "") );
-                        redisService.insertSku (llave, orden.get("product").getAsJsonObject().get("name")
-                                .getAsString().replace("\"", ""));
+                        String brand = orden.get("product").getAsJsonObject().get("name")
+                                .getAsString().replace("\"", "");
+                        pd.setBrand( brand);
+                        log.debug(brand);
+                        redisService.insertSku (llave, brand);
                     }
                 }else{
-                    pd.setBrand(redisService.buscaSku (llave).replace("\"", "") );
+                    pd.setBrand(redisService.buscaSku (llave) );
                 }
                 newlistPd.add(pd);
             }

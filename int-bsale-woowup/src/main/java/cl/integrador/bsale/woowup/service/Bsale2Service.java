@@ -69,7 +69,6 @@ public class Bsale2Service {
                     .header("access_token", token)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .map(StringEscapeUtils::unescapeHtml4) // Escapa el HTML
                     .doOnSuccess(res -> log.info("Call successful for: {} ", brand))
                     .block(); // Bloquea para obtener el resultado (no reactivo en este caso)
         } catch (WebClientResponseException e) {
