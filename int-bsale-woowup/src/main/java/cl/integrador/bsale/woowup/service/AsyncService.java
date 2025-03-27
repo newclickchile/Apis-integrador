@@ -296,7 +296,7 @@ public class AsyncService {
         l.setResultado(resultado);
         l.setObservacion(obs);
         l.setDataDestino(dataDestino);
-        l.setClienteNew(clienteNuevo);
+        l.setClienteNew(String.valueOf( clienteNuevo ));
         logRepository.save(l);
     }
     private String getIpServer() {

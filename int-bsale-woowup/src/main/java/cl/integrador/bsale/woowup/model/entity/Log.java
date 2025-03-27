@@ -53,7 +53,7 @@ public class Log {
     private String dataDestino;
 
     @Column(name="cliente_new", nullable = true)
-    private int clienteNew;
+    private String clienteNew;
 
 
 
