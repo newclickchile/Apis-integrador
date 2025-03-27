@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -32,6 +31,8 @@ import java.util.Date;
 @Slf4j
 @Service
 public class AsyncService {
+    private static int CLIENTE_NUEVO = 1;
+    private static int CLIENTE_EXISTE = 0;
 
     @Autowired
     private UserDataRepository userDataRepository;
@@ -111,14 +112,16 @@ public class AsyncService {
     }
 
     private void manejarProcesoCliente(Long idDataLog, String jsonBsale, Cliente clienteBD) {
-        HttpStatus res = procesoCreacionActualizacionDecliente(jsonBsale, clienteBD);
+        HttpStatus res = procesoCreacionActualizacionDecliente(idDataLog, jsonBsale, clienteBD);
         switch (res) {
             case HttpStatus.OK:
                 ingresarLaVenta(idDataLog, jsonBsale, clienteBD);
                 break;
             case HttpStatus.FORBIDDEN:
                 log.warn("{} Se ignora informaciòn. Falta el nodo 'Client'", idDataLog);
-                cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. No viene dato del cliente", "");
+                Gson gson = new Gson();
+                BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
+                cerrarUnDataLog(idDataLog, "OK", "Se ignora informacion. No viene dato del cliente", bsaleResponse.getOffice().getName());
                 break;
             case HttpStatus.BAD_REQUEST:
                 log.warn("{} Se continua con la venta a pesar de que el correo NO es valido", idDataLog);
@@ -142,19 +145,18 @@ public class AsyncService {
         if(null != vw){
             for(VentaWoowup.PurchaseDetail pd: vw.getPurchase_detail()) {
                 String llave = u.getIdCliente().concat("_SKU_").concat(pd.getSku());
-                log.debug(llave);
-                if (null == redisService.buscaSku (llave) ) {
+                String redisSku = redisService.buscaSku (llave);
+                if (null == redisSku ) {
                     String jsonProducto = bsale2Service.getProduct(pd.getBrand(), u.getKeyBsale());
                     if (null != jsonProducto) {
                          JsonObject orden = JsonParser.parseString(jsonProducto).getAsJsonObject();
                         String brand = orden.get("product").getAsJsonObject().get("name")
                                 .getAsString().replace("\"", "");
                         pd.setBrand( brand);
-                        log.debug(brand);
                         redisService.insertSku (llave, brand);
                     }
                 }else{
-                    pd.setBrand(redisService.buscaSku (llave) );
+                    pd.setBrand( redisSku );
                 }
                 newlistPd.add(pd);
             }
@@ -163,16 +165,16 @@ public class AsyncService {
         WoowupResponse httpCode = woowUp2Service.ingresarVenta(vw, u.getKeyWoowup());
         if(httpCode.getResultCode() == HttpStatus.OK.value()){
             cerrarUnDataLog(idDataLog, "OK",String.valueOf(HttpStatus.OK.value())
-                    , StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
+                    ,   gson.toJson(vw)  );
         }else {
             JsonObject msgRes = JsonParser.parseString(httpCode.getMessage()).getAsJsonObject();
             cerrarUnDataLog(idDataLog, "NOK",httpCode.getResultCode() + " " +
                             msgRes.get("message").getAsString(),
-                    StringEscapeUtils.unescapeJava( gson.toJson(vw) ));
+                      gson.toJson(vw)  );
         }
     }
 
-    private HttpStatus procesoCreacionActualizacionDecliente(String jsonBsale, Cliente u) {
+    private HttpStatus procesoCreacionActualizacionDecliente(Long idDataLog, String jsonBsale, Cliente u) {
         Gson gson = new Gson();
         BsaleResponse bsaleResponse = gson.fromJson(jsonBsale, BsaleResponse.class);
 
@@ -184,7 +186,7 @@ public class AsyncService {
         }
 
         HttpStatusCode codeResponse = woowUp2Service.existeCliente(cw, u.getKeyWoowup());
-        return manejarRespuestaDelServicio(cw, codeResponse, u);
+        return manejarRespuestaDelServicio(idDataLog, cw, codeResponse, u);
     }
 
     private boolean validarEmailDelCliente(BsaleResponse bsaleResponse, Cliente u) {
@@ -198,17 +200,19 @@ public class AsyncService {
         return emailValido;
     }
 
-    private HttpStatus manejarRespuestaDelServicio(ClienteWoowup cw, HttpStatusCode codeResponse, Cliente u) {
+    private HttpStatus manejarRespuestaDelServicio(Long idDataLog, ClienteWoowup cw, HttpStatusCode codeResponse, Cliente u) {
         switch (codeResponse) {
             case HttpStatus.OK:
                 log.debug("[ VAR ] Cliente existe ? {}", true);
                 if (woowUp2Service.actualizaCliente(cw, u.getKeyWoowup())) {
+                    cerrarUnDataLog(idDataLog, "OK", "", "", CLIENTE_EXISTE);
                     return HttpStatus.OK;
                 }
                 break;
             case HttpStatus.NOT_FOUND:
                 log.debug("[ VAR ] Cliente existe ? {}", false);
                 if (woowUp2Service.creaCliente(cw, u.getKeyWoowup())) {
+                    cerrarUnDataLog(idDataLog, "OK", "", "", CLIENTE_NUEVO);
                     return HttpStatus.OK;
                 }
                 break;
@@ -283,6 +287,16 @@ public class AsyncService {
         l.setResultado(resultado);
         l.setObservacion(obs);
         l.setDataDestino(dataDestino);
+        logRepository.save(l);
+    }
+    private void cerrarUnDataLog(Long idDataLog, String resultado, String obs, String dataDestino, int clienteNuevo){
+        log.debug("[ PROCESS ] Cerrando data-log con id: {}" , idDataLog);
+        Log l = logRepository.getByIdDeLog(idDataLog);
+        l.setFechaDestino(new Date());
+        l.setResultado(resultado);
+        l.setObservacion(obs);
+        l.setDataDestino(dataDestino);
+        l.setClienteNew(clienteNuevo);
         logRepository.save(l);
     }
     private String getIpServer() {

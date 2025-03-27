@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface LogRepository extends JpaRepository<Log, Long> {
 
     @Query(value = "SELECT id, cliente, aplicativo, server, sistema_origen, fecha_ingreso, " +
-            " data_origen, sistema_destino, fecha_destino, resultado, observacion, data_destino\n" +
+            " data_origen, sistema_destino, fecha_destino, resultado, observacion, data_destino, cliente_new" +
             " FROM integrador_log  "
             + " WHERE id = ?1  ", nativeQuery = true)
     public Log getByIdDeLog(Long idLog);

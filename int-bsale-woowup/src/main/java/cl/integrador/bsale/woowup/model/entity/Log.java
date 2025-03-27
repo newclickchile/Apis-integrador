@@ -52,6 +52,9 @@ public class Log {
     @Column(name="data_destino", nullable = true)
     private String dataDestino;
 
+    @Column(name="cliente_new", nullable = true)
+    private int clienteNew;
+
 
 
 }
