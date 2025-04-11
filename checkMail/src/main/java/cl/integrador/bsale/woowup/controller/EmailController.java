@@ -99,7 +99,12 @@ public class EmailController {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ]   {}", e.getMessage());
         }
         finLog();
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        String msgError = "{ \"result\":\"" + HttpStatus.INTERNAL_SERVER_ERROR + "\", " +
+                "\"message\":\"Error en el proceso de validacion de correo.\", " +
+                "\"email\":\"" + email + "\", " +
+                "\"dominio\":\"" + getDominio(email)+
+                "\",\"new_mail\":\"1\"}";
+        return ResponseEntity.status(HttpStatus.OK).body(msgError);
     }
     private String envioMsgAlSocket( String dato) {
         log.debug("[ INFO ] [ Enviando al socket el mensaje {} ]", dato);
