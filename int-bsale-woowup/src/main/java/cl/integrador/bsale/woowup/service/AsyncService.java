@@ -249,7 +249,7 @@ public class AsyncService {
         log.debug("[ VAR ] checkMail resultado para {} es : {} ", email, result);
         if(result.equalsIgnoreCase(String.valueOf(HttpStatus.OK.value()))){
             log.debug("[ OK ] El email {} es vàlido ", email);
-            redisService.insertSku("CORREO_".concat(email), email);
+            redisService.insertSku("CORREO_".concat(email), result);
             return true;
         }else{
             log.debug("[ NOK ] El email {} NO es vàlido ", email);
