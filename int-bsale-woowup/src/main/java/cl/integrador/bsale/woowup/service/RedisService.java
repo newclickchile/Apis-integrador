@@ -20,6 +20,10 @@ public class RedisService {
             return false; // El valor ha sido creado en Redis
         }
     }
+    public boolean existeCorreo(String correo) {
+        return redisTemplate.opsForValue().get(correo) != null;
+    }
+
     public String buscaSku(String clave) {
         Object sku = redisTemplate.opsForValue().get(clave);
         return null == sku
