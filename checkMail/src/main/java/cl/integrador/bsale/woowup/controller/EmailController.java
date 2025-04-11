@@ -4,19 +4,24 @@ import cl.integrador.bsale.woowup.model.entity.Cliente;
 import cl.integrador.bsale.woowup.model.entity.Mail;
 import cl.integrador.bsale.woowup.repository.MailDataRepository;
 import cl.integrador.bsale.woowup.repository.UserDataRepository;
+import cl.integrador.bsale.woowup.util.ClienteSocket;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Date;
+
+import static cl.integrador.bsale.woowup.util.EmailValidator.getDominio;
+import static cl.integrador.bsale.woowup.util.EmailValidator.isValidEmail;
 
 @RestController
 @RequestMapping("/v1")
@@ -29,6 +34,20 @@ public class EmailController {
     UserDataRepository userDataRepository;
     @Autowired
     MailDataRepository mailDataRepository;
+
+    @Value("${socket.mail.ip}")
+    String socketIP;
+    @Value("${socket.mail.port}")
+    String socketPort;
+    @Value("${socket.mail.token.auth}")
+    String socketTokenAuth;
+
+    @Value("${socket.gmail.port}")
+    String socketgPort;
+    @Value("${socket.hmail.port}")
+    String socketyPort;
+    @Value("${socket.ymail.port}")
+    String sockethPort;
 
 
     @GetMapping("/check")
@@ -51,8 +70,17 @@ public class EmailController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         try {
+            if(!isValidEmail(email)) {
+                String msgError = "{ \"result\":\"" + HttpStatus.BAD_REQUEST + "\", " +
+                        "\"message\":\"correo no valido.\", " +
+                        "\"email\":\"" + email + "\", " +
+                        "\"dominio\":\"" + getDominio(email)+
+                        "\",\"new_mail\":\"1\"}";
+                return ResponseEntity.status(HttpStatus.OK).body(msgError);
+            }
+
             InetAddress ip = InetAddress.getLocalHost();
-            String responseBody =  executeCommand("/opt/apache-tomcat-11.0.2/work/validMail.sh " + email);
+            String responseBody = envioMsgAlSocket(email) ;
             JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
             String result = jsonObject.get("result").getAsString();
             log.debug("[ VAR ] Result checkMail : {} - {}", email, responseBody);
@@ -73,38 +101,34 @@ public class EmailController {
         finLog();
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    public static String executeCommand(String command) {
-        StringBuilder output = new StringBuilder();
-
+    private String envioMsgAlSocket( String dato) {
+        log.debug("[ INFO ] [ Enviando al socket el mensaje {} ]", dato);
         try {
-            Process process = new ProcessBuilder("/bin/sh", "-c", command).start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-            reader.close();
-
-            while ((line = errorReader.readLine()) != null) {
-                output.append("ERROR: ").append(line).append("\n");
-            }
-            errorReader.close();
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                output.append("Command exited with code ").append(exitCode).append("\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            output.append("An error occurred: ").append(e.getMessage()).append("\n");
+            log.debug("[ VAR ] [ IP, PORT Socket : {} {}", socketIP, socketPort);
+            ClienteSocket client =new ClienteSocket();
+            client.startConnection(socketIP, Integer.parseInt(getSocketSegunCorreo(dato)));
+            return client.sendMessage(socketTokenAuth.concat("#").concat(dato));
+        } catch (UnknownHostException e) {
+            log.error("[ ATENCION ][ No se pudo enviar el mensaje por error en el HOST : {} ]", e.getMessage());
+        } catch (IOException e) {
+            log.error("[ ATENCION ][ No se pudo enviar el mensaje por errror I/O: {} ]", e.getMessage());
         }
-
-        return output.toString();
+        log.error("[ ERROR ] [ No se pudo enviar al socket el mensaje {}#{}#{}#{} ]", socketIP, socketPort,  socketTokenAuth,  dato);
+        return null;
     }
 
+    private String getSocketSegunCorreo(String correo) {
+        if(correo.contains("gmail")){
+            return socketgPort;
+        }
+        if(correo.contains("yahoo")){
+            return socketyPort;
+        }
+        if(correo.contains("hotmail")){
+            return sockethPort;
+        }
+        return socketPort;
+    }
 
 
     private void finLog(){
