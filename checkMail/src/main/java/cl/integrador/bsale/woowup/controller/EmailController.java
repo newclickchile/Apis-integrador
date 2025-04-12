@@ -4,6 +4,7 @@ import cl.integrador.bsale.woowup.model.entity.Cliente;
 import cl.integrador.bsale.woowup.model.entity.Mail;
 import cl.integrador.bsale.woowup.repository.MailDataRepository;
 import cl.integrador.bsale.woowup.repository.UserDataRepository;
+import cl.integrador.bsale.woowup.service.RedisService;
 import cl.integrador.bsale.woowup.util.ClienteSocket;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -34,6 +35,8 @@ public class EmailController {
     UserDataRepository userDataRepository;
     @Autowired
     MailDataRepository mailDataRepository;
+    @Autowired
+    private RedisService redisService;
 
     @Value("${socket.mail.ip}")
     String socketIP;
@@ -71,14 +74,20 @@ public class EmailController {
         }
         try {
             if(!isValidEmail(email)) {
-                String msgError = "{ \"result\":\"" + HttpStatus.BAD_REQUEST + "\", " +
+                log.debug("[ El correo {} NO es valido. NO se invocarà al app socket ]", email);
+                String msgError = "{ \"result\":\"" + HttpStatus.NOT_FOUND.value() + "\", " +
                         "\"message\":\"correo no valido.\", " +
                         "\"email\":\"" + email + "\", " +
                         "\"dominio\":\"" + getDominio(email)+
                         "\",\"new_mail\":\"1\"}";
                 return ResponseEntity.status(HttpStatus.OK).body(msgError);
             }
-
+            String responseFromRedis = redisService.getValue (email);
+            if(null != responseFromRedis) {
+                log.debug("[ El correo {} ya fue validado con anterioridad ]", email);
+                log.debug("[ La respuesta desde redis es : {} ]", responseFromRedis);
+                return ResponseEntity.status(HttpStatus.OK).body(responseFromRedis);
+            }
             InetAddress ip = InetAddress.getLocalHost();
             String responseBody = envioMsgAlSocket(email) ;
             JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();

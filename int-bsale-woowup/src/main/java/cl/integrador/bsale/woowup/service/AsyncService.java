@@ -236,9 +236,6 @@ public class AsyncService {
             log.debug("[ ATENCION ] El cliente {} tiene configurado no validar correos como {} ", u.getIdCliente(), email);
             return true;
         }
-        if (redisService.existeCorreo("CORREO_".concat(email))) {
-           return true;
-        }
         String resValidacionMail = emailService.getCheckEmailInfo(u.getIdCliente(), u.getAccessKey(), email);
         if(null == resValidacionMail){
             log.debug("[ ERROR ] no se pudo validar el email {} ", email);
@@ -249,7 +246,6 @@ public class AsyncService {
         log.debug("[ VAR ] checkMail resultado para {} es : {} ", email, result);
         if(result.equalsIgnoreCase(String.valueOf(HttpStatus.OK.value()))){
             log.debug("[ OK ] El email {} es vàlido ", email);
-            redisService.insertSku("CORREO_".concat(email), result);
             return true;
         }else{
             log.debug("[ NOK ] El email {} NO es vàlido ", email);
