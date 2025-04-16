@@ -40,4 +40,15 @@ public class Mail {
     @Column(name="data_salida", nullable = true)
     private String dataSalida;
 
+    @Column(name="dominio", nullable = true)
+    private String dominio;
+
+    @Column(name="mail_new", nullable = true)
+    private Integer mailNew;
+
+    @Column(name="fecha_termino", nullable = true)
+    private Date fechaTermino;
+
+    @Column(name="socket", nullable = true)
+    private Integer socket;
 }

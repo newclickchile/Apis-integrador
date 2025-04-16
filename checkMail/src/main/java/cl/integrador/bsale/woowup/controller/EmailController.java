@@ -51,6 +51,8 @@ public class EmailController {
     String socketyPort;
     @Value("${socket.ymail.port}")
     String sockethPort;
+    @Value("${socket.omail.port}")
+    String socketoPort;
 
 
     @GetMapping("/check")
@@ -62,6 +64,7 @@ public class EmailController {
         log.info("[ =   S T A R T      W E B H O O K   = ]");
         log.info("[ ==================================== ]");
         log.debug("[ WEBHOOK ] Received request for process: {}", email);
+        Date fechaIngreso = new Date();
         if(null == idCliente || null == accessKey || null == email){
             finLog();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -79,41 +82,40 @@ public class EmailController {
                         "\"message\":\"correo no valido.\", " +
                         "\"email\":\"" + email + "\", " +
                         "\"dominio\":\"" + getDominio(email)+
-                        "\",\"new_mail\":\"1\"}";
+                        "\",\"new_mail\":\"0\"}";
+
+                InetAddress ip = InetAddress.getLocalHost();
+                registraBD( idCliente, fechaIngreso, email, msgError, ip.getHostAddress(), 0);
+                finLog();
                 return ResponseEntity.status(HttpStatus.OK).body(msgError);
             }
             String responseFromRedis = redisService.getValue (email);
+            log.debug("[ La respuesta desde redis es : {} ]", responseFromRedis);
             if(null != responseFromRedis) {
                 log.debug("[ El correo {} ya fue validado con anterioridad ]", email);
-                log.debug("[ La respuesta desde redis es : {} ]", responseFromRedis);
+                InetAddress ip = InetAddress.getLocalHost();
+                registraBD( idCliente, fechaIngreso, email, responseFromRedis, ip.getHostAddress(), 0);
+                finLog();
                 return ResponseEntity.status(HttpStatus.OK).body(responseFromRedis);
             }
             InetAddress ip = InetAddress.getLocalHost();
             String responseBody = envioMsgAlSocket(email) ;
-            JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
-            String result = jsonObject.get("result").getAsString();
             log.debug("[ VAR ] Result checkMail : {} - {}", email, responseBody);
-            Mail m = new Mail();
-            m.setIdCliente(idCliente);
-            m.setResultado(result);
-            m.setFechaIngreso(new Date());
-            m.setServer(ip.getHostAddress());
-            m.setMail(email);
-            m.setDataSalida(responseBody);
-            mailDataRepository.save(m);
+            registraBD( idCliente, fechaIngreso, email, responseBody, ip.getHostAddress(), Integer.parseInt(getSocketSegunCorreo(email)));
             finLog();
             return ResponseEntity.status(HttpStatus.OK).body(responseBody);
         } catch (Exception e) {
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ][ WEBHOOK ]  {}", email);
             log.error("[ ERROR ] [ GENERAL] [ RECEPCION DE EVENTO ]   {}", e.getMessage());
-        }
-        finLog();
-        String msgError = "{ \"result\":\"" + HttpStatus.INTERNAL_SERVER_ERROR + "\", " +
+            String msgError = "{ \"result\":\"" + HttpStatus.INTERNAL_SERVER_ERROR.value() + "\", " +
                 "\"message\":\"Error en el proceso de validacion de correo.\", " +
                 "\"email\":\"" + email + "\", " +
                 "\"dominio\":\"" + getDominio(email)+
                 "\",\"new_mail\":\"1\"}";
-        return ResponseEntity.status(HttpStatus.OK).body(msgError);
+            registraBD( idCliente, fechaIngreso, email, msgError, "127.0.0.1", 0);
+            finLog();
+            return ResponseEntity.status(HttpStatus.OK).body(msgError);
+        }
     }
     private String envioMsgAlSocket( String dato) {
         log.debug("[ INFO ] [ Enviando al socket el mensaje {} ]", dato);
@@ -125,7 +127,7 @@ public class EmailController {
         } catch (UnknownHostException e) {
             log.error("[ ATENCION ][ No se pudo enviar el mensaje por error en el HOST : {} ]", e.getMessage());
         } catch (IOException e) {
-            log.error("[ ATENCION ][ No se pudo enviar el mensaje por errror I/O: {} ]", e.getMessage());
+            log.error("[ ATENCION ][ No se pudo enviar el mensaje por eror I/O: {} ]", e.getMessage());
         }
         log.error("[ ERROR ] [ No se pudo enviar al socket el mensaje {}#{}#{}#{} ]", socketIP, socketPort,  socketTokenAuth,  dato);
         return null;
@@ -141,6 +143,9 @@ public class EmailController {
         if(correo.contains("hotmail")){
             return sockethPort;
         }
+        if(correo.contains("outlook")){
+            return socketoPort;
+        }
         return socketPort;
     }
 
@@ -149,6 +154,25 @@ public class EmailController {
         log.info("[ ================================ ]");
         log.info("[ =   E N D      W E B H O O K   = ]");
         log.info("[ ================================ ]");
+    }
+
+    private void registraBD( String idCliente, Date fechaIngreso, String email, String Data, String Ip, Integer socket){
+        Mail m = new Mail();
+        JsonObject jsonObject = JsonParser.parseString(Data).getAsJsonObject();
+        String result = jsonObject.get("result").getAsString();
+        Integer new_mail = jsonObject.get("new_mail").getAsInt();
+        m.setIdCliente(idCliente);
+        m.setResultado(result);
+        m.setFechaIngreso(fechaIngreso);
+        m.setFechaTermino(new Date());
+        m.setServer(Ip);
+        m.setMail(email);
+        m.setDataSalida(Data);
+        m.setDominio(getDominio(email));
+        m.setMailNew(new_mail);
+        m.setSocket(socket);
+        mailDataRepository.save(m);
+        return;
     }
 
 }
