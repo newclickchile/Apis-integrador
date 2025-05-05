@@ -17,5 +17,9 @@ public class RedisService {
                 ?null
                 :(String) sku ;
     }
+    public boolean setValue(String clave, String valor) {
+        redisTemplate.opsForValue().set(clave, valor);
+        return true;
+    }
 
 }
